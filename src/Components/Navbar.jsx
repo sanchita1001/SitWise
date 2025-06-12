@@ -19,7 +19,7 @@ function Navbar() {
   }, []);
 
   return (
-    <div className="bg-gradient-to-r from-blue-100 via-white to-blue-200 min-h-screen text-gray-800">
+    <>
       <nav
         className={`${
           isScrolled ? "bg-white shadow-md" : "bg-white/30 backdrop-blur-md"
@@ -56,7 +56,7 @@ function Navbar() {
           Book Now
         </a>
       </nav>
-    </div>
+    </>
   );
 }
 

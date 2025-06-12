@@ -3,7 +3,7 @@ import { Coffee, BookOpen } from "lucide-react";
 
 function FloorCard() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen">
+    <div className="flex flex-col items-center justify-center py-10">
       <div className="text-xl md:text-6xl font-bold text-black text-center mb-10">
         Choose Your <span className="text-blue-500">Floor</span>
       </div>
