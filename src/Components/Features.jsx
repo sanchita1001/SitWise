@@ -1,7 +1,6 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import { Clock, MapPin, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
-import gsap from 'gsap';
 
 const features = [
   {
@@ -42,19 +41,19 @@ const Features = () => {
   return (
     <section
       ref={containerRef}
-      className="w-full py-14 px-4 transition-all duration-700"
+      className="w-full py-10 px-2 sm:py-14 sm:px-4 transition-all duration-700"
     >
       <motion.h2
         initial={{ opacity: 0, y: -30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.7 }}
-        className="text-2xl md:text-5xl font-extrabold text-center text-black mb-10 tracking-tight"
+        className="text-2xl md:text-5xl font-extrabold text-center text-black mb-8 md:mb-10 tracking-tight"
         style={{ fontFamily: "'Poppins', sans-serif" }}
       >
         Why Choose <span className="text-blue-700 text-2xl md:text-5xl font-extrabold">SitWise?</span>
       </motion.h2>
-      <div className="flex flex-col md:flex-row justify-center items-center gap-8 max-w-5xl mx-auto">
+      <div className="flex flex-col gap-8 md:flex-row md:gap-6 lg:gap-8 justify-center items-center max-w-5xl mx-auto">
         {features.map((feature, i) => (
           <motion.div
             key={i}
@@ -63,7 +62,7 @@ const Features = () => {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, amount: 0.3 }}
-            className="relative bg-white rounded-3xl shadow-xl p-8 text-center w-full max-w-xs hover:shadow-2xl transition-all duration-300 group"
+            className="relative bg-white rounded-3xl shadow-xl p-6 sm:p-8 text-center w-full max-w-xs min-w-0 hover:shadow-2xl transition-all duration-300 group"
             whileHover={{
               scale: 1.04,
               boxShadow: "0 8px 32px 0 rgba(34, 139, 230, 0.18)",
@@ -79,8 +78,8 @@ const Features = () => {
                 {feature.icon}
               </div>
             </motion.div>
-            <h3 className="text-xl font-bold mb-2 text-gray-900">{feature.title}</h3>
-            <p className="text-gray-500 text-base">{feature.description}</p>
+            <h3 className="text-lg sm:text-xl font-bold mb-2 text-gray-900">{feature.title}</h3>
+            <p className="text-gray-500 text-sm sm:text-base">{feature.description}</p>
             <motion.div
               className="absolute -top-3 -right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
               initial={{ scale: 0 }}
