@@ -10,7 +10,7 @@ const features = [
   },
   {
     icon: <MapPin className="w-10 h-10" />,
-    title: '5 Floors Available',
+    title: '2 Floors Available',
     description: 'Choose from multiple floors to find your perfect study environment',
   },
   {
