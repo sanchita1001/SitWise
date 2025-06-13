@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import { motion } from "framer-motion";
 
-// Define color classes for seat status
+// Define color classes
 const seatColors = {
   available: "bg-green-100 border-green-400 text-green-800",
   occupied: "bg-red-100 border-red-400 text-red-800",
@@ -10,7 +8,7 @@ const seatColors = {
   selected: "bg-blue-100 border-blue-400 text-blue-800",
 };
 
-// Generate 8x8 matrix of random seat statuses
+// Generate 8x8 matrix of seat statuses
 const generateSeats = () => {
   const statuses = ["available", "occupied", "reserved"];
   const grid = [];
@@ -24,47 +22,59 @@ const generateSeats = () => {
   return grid;
 };
 
-function FloorPlanPage() {
-  const { floorId } = useParams();
+const FloorPlan = ({ floor }) => {
   const [seats, setSeats] = useState(generateSeats());
+  const [selectedSeat, setSelectedSeat] = useState(null); // Store selected seat coordinates
 
   useEffect(() => {
     setSeats(generateSeats());
-  }, [floorId]);
+    setSelectedSeat(null);
+  }, [floor]);
 
   const handleSeatClick = (rowIdx, colIdx) => {
-    setSeats((prevSeats) =>
-      prevSeats.map((row, rIdx) =>
-        row.map((status, cIdx) =>
-          rIdx === rowIdx && cIdx === colIdx && status === "available"
-            ? "selected"
-            : status
-        )
-      )
-    );
+    const currentStatus = seats[rowIdx][colIdx];
+
+    if (currentStatus === "available") {
+      // If clicking same selected seat, deselect
+      if (selectedSeat && selectedSeat[0] === rowIdx && selectedSeat[1] === colIdx) {
+        setSeats((prev) =>
+          prev.map((row, rIdx) =>
+            row.map((seat, cIdx) =>
+              rIdx === rowIdx && cIdx === colIdx ? "available" : seat
+            )
+          )
+        );
+        setSelectedSeat(null);
+      } else {
+        // Deselect any previous, select the new one
+        setSeats((prev) =>
+          prev.map((row, rIdx) =>
+            row.map((seat, cIdx) => {
+              if (seat === "selected") return "available";
+              if (rIdx === rowIdx && cIdx === colIdx) return "selected";
+              return seat;
+            })
+          )
+        );
+        setSelectedSeat([rowIdx, colIdx]);
+      }
+    }
   };
 
-  // Convert row index (0–7) to A–H
   const getSeatLabel = (rowIdx, colIdx) => {
-    const rowLetter = String.fromCharCode(65 + rowIdx);
+    const rowLetter = String.fromCharCode(65 + rowIdx); // A = 65
     return `${rowLetter}${colIdx + 1}`;
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -40 }}
-      transition={{ duration: 0.4 }}
-      className="p-6 min-h-screen bg-gradient-to-r from-blue-50 to-white"
-    >
-      <h1 className="text-3xl font-bold mb-6">Floor Plan - Level {floorId}</h1>
+    <div className="p-6 min-h-screen bg-gradient-to-r from-blue-50 to-white">
+      <h1 className="text-3xl font-bold mb-6">Floor Plan - Level {floor}</h1>
 
       {/* Legend */}
       <div className="flex flex-wrap gap-4 mb-8">
         {Object.entries(seatColors).map(([key, className]) => (
           <div key={key} className="flex items-center gap-2">
-            <div className={`w-5 h-5 rounded-full border ${className}`}></div>
+            <div className={`w-5 h-5 rounded-full border ${className}`} />
             <span className="capitalize text-gray-700 font-medium">{key}</span>
           </div>
         ))}
@@ -74,25 +84,20 @@ function FloorPlanPage() {
       <div className="space-y-3">
         {seats.map((row, rowIdx) => (
           <div key={rowIdx} className="flex justify-center gap-3">
-            {row.map((status, colIdx) => {
-              const color = seatColors[status] || seatColors.available;
-              const label = getSeatLabel(rowIdx, colIdx);
-
-              return (
-                <button
-                  key={`${rowIdx}-${colIdx}`}
-                  onClick={() => handleSeatClick(rowIdx, colIdx)}
-                  className={`w-14 h-14 rounded-lg font-medium text-sm border-2 flex items-center justify-center ${color}`}
-                >
-                  {label}
-                </button>
-              );
-            })}
+            {row.map((status, colIdx) => (
+              <button
+                key={`${rowIdx}-${colIdx}`}
+                onClick={() => handleSeatClick(rowIdx, colIdx)}
+                className={`w-14 h-14 rounded-lg font-medium text-sm border-2 flex items-center justify-center ${seatColors[status]}`}
+              >
+                {getSeatLabel(rowIdx, colIdx)}
+              </button>
+            ))}
           </div>
         ))}
       </div>
-    </motion.div>
+    </div>
   );
-}
+};
 
-export default FloorPlanPage;
+export default FloorPlan;
