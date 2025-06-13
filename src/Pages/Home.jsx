@@ -1,17 +1,27 @@
 import React, { useState } from 'react';
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import Hero from "../Components/Hero.jsx";
 import Floorcard from '../Components/floorcard.jsx';
-import Floorplan from '../Components/Floorplan.jsx'; 
 import Navbar from "../Components/Navbar.jsx";
 
 function Home() {
-  const [selectedFloor, setSelectedFloor] = useState(null);
   const location = useLocation();
+  const navigate = useNavigate();
   const successMessage = location.state?.success;
 
+  // Redirect to /floorplan/{floor} when a floor is selected
+  const handleSelectFloor = (floor) => {
+    navigate(`/floorplan/${floor}`);
+  };
+
   return (
-    <div>
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -40 }}
+      transition={{ duration: 0.4 }}
+    >
       <Navbar />
       {successMessage && (
         <div className="bg-green-100 text-green-800 px-4 py-2 rounded text-center mt-4 mx-4">
@@ -19,21 +29,8 @@ function Home() {
         </div>
       )}
       <Hero />
-
-      {!selectedFloor ? (
-        <Floorcard onSelectFloor={(floor) => setSelectedFloor(floor)} />
-      ) : (
-        <div className="p-4">
-          <button
-            onClick={() => setSelectedFloor(null)}
-            className="mb-4 px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
-          >
-            ← Back to Floor Selection
-          </button>
-          <Floorplan floor={selectedFloor} />
-        </div>
-      )}
-    </div>
+      <Floorcard onSelectFloor={handleSelectFloor} />
+    </motion.div>
   );
 }
 

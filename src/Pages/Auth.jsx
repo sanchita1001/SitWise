@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import supabase from "../supabase/client";
 import gsap from "gsap";
@@ -21,7 +22,12 @@ function AuthForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 px-4">
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -40 }}
+      transition={{ duration: 0.4 }}
+    >
       <div
         ref={cardRef}
         className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 md:p-12 flex flex-col items-center"
@@ -49,7 +55,7 @@ function AuthForm() {
           Continue with Google
         </button>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

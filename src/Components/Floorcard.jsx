@@ -57,7 +57,7 @@ function FloorCard({ onSelectFloor }) {
             onClick={() => onSelectFloor(1)}
             className="w-full bg-gradient-to-r from-blue-500 to-blue-400 hover:from-blue-600 hover:to-blue-500 text-white font-semibold py-4 rounded-2xl transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
           >
-            Select Floor
+            Floor - 1 Seats
           </button>
         </div>
 
@@ -109,7 +109,7 @@ function FloorCard({ onSelectFloor }) {
             onClick={() => onSelectFloor(2)}
             className="w-full bg-gradient-to-r from-green-500 to-green-400 hover:from-green-600 hover:to-green-500 text-white font-semibold py-4 rounded-2xl transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
           >
-            Select Floor
+            Floor - 2 Seats
           </button>
         </div>
       </div>
