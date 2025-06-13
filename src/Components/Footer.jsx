@@ -5,28 +5,30 @@ import { motion } from "framer-motion";
 export default function Footer() {
   return (
     <footer className="bg-gradient-to-t from-gray-100 via-white to-gray-50 text-gray-800 mt-10 shadow-inner rounded-t-2xl">
-      <div className="max-w-7xl mx-auto px-4 py-10 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-6">
-          
+      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-8 md:flex-row md:justify-between md:items-center">
           {/* Branding + tagline */}
-          <motion.div whileHover={{ scale: 1.03 }} className="cursor-default">
-            <h1 className="text-3xl font-extrabold text-black tracking-tight d">SitWise</h1>
-            <p className="text-base text-gray-600 italic mt-1">
+          <motion.div whileHover={{ scale: 1.03 }} className="cursor-default flex flex-col items-center md:items-start">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-black tracking-tight">SitWise</h1>
+            <p className="text-sm sm:text-base text-gray-600 italic mt-1 text-center md:text-left">
               Fu*k waiting — your study spot is ready.
             </p>
           </motion.div>
 
           {/* Links */}
-          <motion.div whileHover={{ scale: 1.03 }} className="flex flex-wrap gap-4 text-base font-medium">
+          <motion.div
+            whileHover={{ scale: 1.03 }}
+            className="flex flex-wrap justify-center md:justify-start gap-2 sm:gap-4 text-sm sm:text-base font-medium"
+          >
             <a href="/" className="transition-colors px-3 py-1 rounded-lg hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200">Home</a>
             <a href="/book" className="transition-colors px-3 py-1 rounded-lg hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200">Book Seat</a>
             <a href="/reservations" className="transition-colors px-3 py-1 rounded-lg hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200">My Reservations</a>
-            <a href="/about" className="transition-colors px-3 py-1 rounded-lg hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200">About</a>
+            {/* <a href="/about" className="transition-colors px-3 py-1 rounded-lg hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200">About</a> */}
             <a href="/contact" className="transition-colors px-3 py-1 rounded-lg hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200">Contact</a>
           </motion.div>
 
           {/* Social */}
-          <motion.div whileHover={{ scale: 1.12 }} className="flex gap-4">
+          <motion.div whileHover={{ scale: 1.12 }} className="flex justify-center md:justify-end gap-4">
             <a
               href="https://github.com/PrathamRanka/SitWise"
               target="_blank"
@@ -45,8 +47,12 @@ export default function Footer() {
           transition={{ duration: 0.8 }}
           className="mt-8 border-t border-gray-200 pt-5 text-xs text-gray-500 text-center"
         >
-          <p className="mb-1">Created by <span className="font-semibold text-blue-700">Sagarika, Sanchita, Pratham</span></p>
-          <p>© 2025 <span className="font-semibold text-gray-700">SitWise</span>. All rights reserved.</p>
+          <p className="mb-1">
+            Created by <span className="font-semibold text-blue-700">Sagarika, Sanchita, Pratham</span>
+          </p>
+          <p>
+            © 2025 <span className="font-semibold text-gray-700">SitWise</span>. All rights reserved.
+          </p>
         </motion.div>
       </div>
     </footer>
