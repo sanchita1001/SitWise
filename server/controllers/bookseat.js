@@ -2,7 +2,12 @@ const pool = require('../db');
 
 exports.bookSeat = async (req, res) => {
   const { seat_id } = req.body;
-  const user_id = req.user.sub; // Use user id from JWT
+  const user_id = req.user.id; // Now using the properly verified user ID
+
+  if (!seat_id) {
+    return res.status(400).json({ error: 'Seat ID is required' });
+  }
+
   try {
     const bookedAt = new Date();
     const expiresAt = new Date(bookedAt.getTime() + 5 * 60000); // 5 min
@@ -16,12 +21,14 @@ exports.bookSeat = async (req, res) => {
     );
 
     if (result.rowCount === 0) {
-      return res.status(400).json({ error: 'Seat not available' });
+      return res.status(400).json({ 
+        error: 'Seat not available or already taken' 
+      });
     }
 
     res.json(result.rows[0]);
   } catch (err) {
-    console.error(err.message);
+    console.error('Database error:', err.message);
     res.status(500).json({ error: 'Server error' });
   }
 };
