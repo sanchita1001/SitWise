@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Clock, MapPin, Users } from 'lucide-react';
+import { motion } from 'framer-motion';
+import gsap from 'gsap';
 
 const features = [
   {
@@ -19,24 +21,79 @@ const features = [
   },
 ];
 
+const cardVariants = {
+  hidden: { opacity: 0, y: 60, scale: 0.95 },
+  visible: (i) => ({
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      delay: i * 0.18,
+      duration: 0.7,
+      type: "spring",
+      stiffness: 80,
+    },
+  }),
+};
+
 const Features = () => {
+  const containerRef = useRef(null);
+
   return (
-    <div className="flex flex-col md:flex-row justify-center items-center gap-6 py-12 px-4 bg-white">
-      {features.map((feature, index) => (
-        <div
-          key={index}
-          className="bg-white rounded-xl shadow-md p-6 text-center w-72 hover:shadow-lg transition-all"
-        >
-          <div className="flex justify-center mb-4">
-            <div className="bg-gradient-to-br from-blue-400 to-blue-500 p-3 rounded-full bg-opacity-10">
-              {feature.icon}
-            </div>
-          </div>
-          <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-          <p className="text-gray-500 text-sm">{feature.description}</p>
-        </div>
-      ))}
-    </div>
+    <section
+      ref={containerRef}
+      className="w-full py-14 px-4 transition-all duration-700"
+    >
+      <motion.h2
+        initial={{ opacity: 0, y: -30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.7 }}
+        className="text-2xl md:text-5xl font-extrabold text-center text-black mb-10 tracking-tight"
+        style={{ fontFamily: "'Poppins', sans-serif" }}
+      >
+        Why Choose <span className="text-blue-700 text-2xl md:text-5xl font-extrabold">SitWise?</span>
+      </motion.h2>
+      <div className="flex flex-col md:flex-row justify-center items-center gap-8 max-w-5xl mx-auto">
+        {features.map((feature, i) => (
+          <motion.div
+            key={i}
+            custom={i}
+            variants={cardVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            className="relative bg-white rounded-3xl shadow-xl p-8 text-center w-full max-w-xs hover:shadow-2xl transition-all duration-300 group"
+            whileHover={{
+              scale: 1.04,
+              boxShadow: "0 8px 32px 0 rgba(34, 139, 230, 0.18)",
+            }}
+          >
+            <motion.div
+              className="flex justify-center mb-5"
+              initial={{ rotate: -10, scale: 0.9 }}
+              whileHover={{ rotate: 8, scale: 1.1 }}
+              transition={{ type: "spring", stiffness: 200, damping: 10 }}
+            >
+              <div className="bg-gradient-to-br from-blue-400 to-blue-600 p-4 rounded-full shadow-lg group-hover:scale-110 transition-transform duration-300">
+                {feature.icon}
+              </div>
+            </motion.div>
+            <h3 className="text-xl font-bold mb-2 text-gray-900">{feature.title}</h3>
+            <p className="text-gray-500 text-base">{feature.description}</p>
+            <motion.div
+              className="absolute -top-3 -right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              initial={{ scale: 0 }}
+              whileHover={{ scale: 1.1, opacity: 1 }}
+            >
+              <svg width="32" height="32" fill="none">
+                <circle cx="16" cy="16" r="16" fill="#3B82F6" fillOpacity="0.15" />
+              </svg>
+            </motion.div>
+          </motion.div>
+        ))}
+      </div>
+    </section>
   );
 };
 
