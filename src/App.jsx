@@ -1,19 +1,18 @@
-import { useState } from 'react'
-import Home from './Pages/Home'
-import './App.css'
 import React from "react";
-import FloorCard from './Components/floorcard';
-
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Home from "./Pages/Home";
+import Auth from "./Pages/Auth";
+import './App.css'
 
 function App() {
- 
-
   return (
-    <>
-       <Home/>
-      
-    </>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/auth" element={<Auth />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;

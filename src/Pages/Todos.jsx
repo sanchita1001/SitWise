@@ -1,32 +1,25 @@
-import { useState, useEffect } from 'react'
-import { supabase } from '../utils/supabase'
+import { useEffect, useState } from "react";
+import supabase from '../supabase/client'
 
-function Page() {
-  const [todos, setTodos] = useState([])
+function App() {
+  const [instruments, setInstruments] = useState([]);
 
   useEffect(() => {
-    async function getTodos() {
-      const { data, error } = await supabase.from('todos').select()
+    getInstruments();
+  }, []);
 
-      if (error) {
-        console.error('Error fetching todos:', error)
-      } else if (data.length > 0) {
-        setTodos(data)
-      }
-    }
-
-    getTodos()
-  }, [])
+  async function getInstruments() {
+    const { data } = await supabase.from("instruments").select();
+    setInstruments(data);
+  }
 
   return (
-    <div>
-      <ul>
-        {todos.map((todo) => (
-          <li key={todo.id}>{todo.title}</li> 
-        ))}
-      </ul>
-    </div>
-  )
+    <ul>
+      {instruments.map((instrument) => (
+        <li key={instrument.name}>{instrument.name}</li>
+      ))}
+    </ul>
+  );
 }
 
-export default Page
+export default App;
