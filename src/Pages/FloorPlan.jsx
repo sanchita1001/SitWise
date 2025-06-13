@@ -23,79 +23,106 @@ const generateSeats = () => {
 const FloorPlan = ({ floor }) => {
   const [seats, setSeats] = useState(generateSeats());
   const [selectedSeat, setSelectedSeat] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupType, setPopupType] = useState(""); // book, vacate, switch
+  const [popupSeat, setPopupSeat] = useState(null);
 
   useEffect(() => {
     setSeats(generateSeats());
     setSelectedSeat(null);
-    setShowModal(false);
   }, [floor]);
+
+  const getSeatLabel = (rowIdx, colIdx) =>
+    `${String.fromCharCode(65 + rowIdx)}${colIdx + 1}`;
 
   const handleSeatClick = (rowIdx, colIdx) => {
     const currentStatus = seats[rowIdx][colIdx];
+    const clickedSeat = [rowIdx, colIdx];
 
-    if (currentStatus === "available") {
-      if (selectedSeat && selectedSeat[0] === rowIdx && selectedSeat[1] === colIdx) {
-        // Deselect if clicking same selected seat
-        setSeats((prev) =>
-          prev.map((row, rIdx) =>
-            row.map((seat, cIdx) =>
-              rIdx === rowIdx && cIdx === colIdx ? "available" : seat
-            )
-          )
-        );
-        setSelectedSeat(null);
-        setShowModal(false);
-      } else {
-        // Select new seat
-        setSeats((prev) =>
-          prev.map((row, rIdx) =>
-            row.map((seat, cIdx) => {
-              if (seat === "selected") return "available";
-              if (rIdx === rowIdx && cIdx === colIdx) return "selected";
-              return seat;
-            })
-          )
-        );
-        setSelectedSeat([rowIdx, colIdx]);
-        setShowModal(true);
-      }
+    // Seat is already selected, ask to vacate
+    if (
+      selectedSeat &&
+      selectedSeat[0] === rowIdx &&
+      selectedSeat[1] === colIdx &&
+      currentStatus === "selected"
+    ) {
+      setPopupType("vacate");
+      setPopupSeat(clickedSeat);
+      setShowPopup(true);
+    }
+
+    // First time selecting an available seat
+    else if (!selectedSeat && currentStatus === "available") {
+      setPopupType("book");
+      setPopupSeat(clickedSeat);
+      setShowPopup(true);
+    }
+
+    // Clicking another available seat while one is already selected
+    else if (
+      selectedSeat &&
+      currentStatus === "available" &&
+      (selectedSeat[0] !== rowIdx || selectedSeat[1] !== colIdx)
+    ) {
+      setPopupType("switch");
+      setPopupSeat(clickedSeat);
+      setShowPopup(true);
     }
   };
 
-  const handleCancel = () => {
-    if (!selectedSeat) return;
-    const [rowIdx, colIdx] = selectedSeat;
-    setSeats((prev) =>
-      prev.map((row, rIdx) =>
-        row.map((seat, cIdx) =>
-          rIdx === rowIdx && cIdx === colIdx ? "available" : seat
-        )
+  const handleBook = () => {
+    const [row, col] = popupSeat;
+    const updatedSeats = seats.map((r, rIdx) =>
+      r.map((seat, cIdx) =>
+        rIdx === row && cIdx === col ? "selected" : seat
       )
     );
+    setSeats(updatedSeats);
+    setSelectedSeat(popupSeat);
+    setShowPopup(false);
+    setPopupSeat(null);
+  };
+
+  const handleVacate = () => {
+    const [row, col] = popupSeat;
+    const updatedSeats = seats.map((r, rIdx) =>
+      r.map((seat, cIdx) =>
+        rIdx === row && cIdx === col ? "available" : seat
+      )
+    );
+    setSeats(updatedSeats);
     setSelectedSeat(null);
-    setShowModal(false);
+    setShowPopup(false);
+    setPopupSeat(null);
   };
 
-  const handleBook = () => {
-    setShowModal(false);
-    // You can later add backend booking here
-  };
+  const handleSwitch = () => {
+    const [newRow, newCol] = popupSeat;
+    const [oldRow, oldCol] = selectedSeat;
 
-  const getSeatLabel = (rowIdx, colIdx) => {
-    const rowLetter = String.fromCharCode(65 + rowIdx);
-    return `${rowLetter}${colIdx + 1}`;
+    const updatedSeats = seats.map((row, rIdx) =>
+      row.map((seat, cIdx) => {
+        if (rIdx === oldRow && cIdx === oldCol) return "available";
+        if (rIdx === newRow && cIdx === newCol) return "selected";
+        return seat;
+      })
+    );
+
+    setSeats(updatedSeats);
+    setSelectedSeat([newRow, newCol]);
+    setShowPopup(false);
+    setPopupSeat(null);
   };
 
   return (
-    <div className="p-6 min-h-screen bg-gradient-to-r from-blue-50 to-white">
+    <div className="p-6 min-h-screen bg-gradient-to-r from-blue-50 to-white relative">
       <h1 className="text-3xl font-bold mb-6">Floor Plan - Level {floor}</h1>
 
       {/* Legend */}
       <div className="flex flex-wrap gap-4 mb-8">
         {Object.entries(seatColors).map(([key, className]) => (
           <div key={key} className="flex items-center gap-2">
-            <div className={`w-5 h-5 rounded-full border ${className}`} />
+            <div className={`w-5 h-5 rounded-full border ${seatColors[key]}`} />
             <span className="capitalize text-gray-700 font-medium">{key}</span>
           </div>
         ))}
@@ -118,30 +145,75 @@ const FloorPlan = ({ floor }) => {
         ))}
       </div>
 
-      {/* Modal */}
-      {showModal && selectedSeat && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-xl shadow-lg w-80 space-y-4">
-            <h2 className="text-xl font-bold text-gray-800 text-center">
-              Confirm Seat:{" "}
-              <span className="text-blue-600">
-                {getSeatLabel(selectedSeat[0], selectedSeat[1])}
-              </span>
-            </h2>
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={handleBook}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold"
-              >
-                Book Now
-              </button>
-              <button
-                onClick={handleCancel}
-                className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg font-semibold"
-              >
-                Cancel
-              </button>
-            </div>
+      {/* Popup */}
+      {showPopup && popupSeat && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl shadow-lg w-80 space-y-4 text-center">
+            {popupType === "book" && (
+              <>
+                <h2 className="text-lg font-semibold">
+                  Do you want to book seat {getSeatLabel(...popupSeat)}?
+                </h2>
+                <div className="flex justify-center gap-4 mt-4">
+                  <button
+                    className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+                    onClick={handleBook}
+                  >
+                    Book Seat
+                  </button>
+                  <button
+                    className="bg-gray-300 px-4 py-2 rounded-lg"
+                    onClick={() => setShowPopup(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </>
+            )}
+            {popupType === "vacate" && (
+              <>
+                <h2 className="text-lg font-semibold">
+                  Do you want to vacate seat {getSeatLabel(...popupSeat)}?
+                </h2>
+                <div className="flex justify-center gap-4 mt-4">
+                  <button
+                    className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+                    onClick={handleVacate}
+                  >
+                    Vacant Seat
+                  </button>
+                  <button
+                    className="bg-gray-300 px-4 py-2 rounded-lg"
+                    onClick={() => setShowPopup(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </>
+            )}
+            {popupType === "switch" && (
+              <>
+                <h2 className="text-lg font-semibold">
+                  You already booked seat {getSeatLabel(...selectedSeat)}.
+                  <br />
+                  Do you want to switch to seat {getSeatLabel(...popupSeat)}?
+                </h2>
+                <div className="flex justify-center gap-4 mt-4">
+                  <button
+                    className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600"
+                    onClick={handleSwitch}
+                  >
+                    Switch Seat
+                  </button>
+                  <button
+                    className="bg-gray-300 px-4 py-2 rounded-lg"
+                    onClick={() => setShowPopup(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
