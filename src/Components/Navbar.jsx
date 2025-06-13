@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-function Navbar({ isLoggedIn, onContactClick }) {
+function Navbar({ isLoggedIn, onContactClick, onFeaturesClick}) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
@@ -100,9 +100,13 @@ function Navbar({ isLoggedIn, onContactClick }) {
 
       {/* Centered Navigation Links (desktop) */}
       <div className="hidden sm:flex absolute left-1/2 transform -translate-x-1/2 space-x-8 text-gray-700 text-lg font-medium">
-        <span className="hover:text-blue-600 transition-colors cursor-default">
-          Features
-        </span>
+        <button
+  onClick={onFeaturesClick}
+  className="hover:text-blue-600 transition-colors cursor-pointer focus:outline-none"
+>
+  Features
+</button>
+        
         <span className="hover:text-blue-600 transition-colors cursor-default">
           How it Works
         </span>
