@@ -10,7 +10,7 @@ export default function Footer() {
           
           {/* Branding + tagline */}
           <motion.div whileHover={{ scale: 1.03 }} className="cursor-default">
-            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight drop-shadow-sm">SitWise</h1>
+            <h1 className="text-3xl font-extrabold text-black tracking-tight d">SitWise</h1>
             <p className="text-base text-gray-600 italic mt-1">
               Fu*k waiting — your study spot is ready.
             </p>
