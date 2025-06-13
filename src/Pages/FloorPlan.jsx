@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 
-// Define color classes
 const seatColors = {
   available: "bg-green-100 border-green-400 text-green-800",
   occupied: "bg-red-100 border-red-400 text-red-800",
@@ -8,7 +7,6 @@ const seatColors = {
   selected: "bg-blue-100 border-blue-400 text-blue-800",
 };
 
-// Generate 8x8 matrix of seat statuses
 const generateSeats = () => {
   const statuses = ["available", "occupied", "reserved"];
   const grid = [];
@@ -24,19 +22,21 @@ const generateSeats = () => {
 
 const FloorPlan = ({ floor }) => {
   const [seats, setSeats] = useState(generateSeats());
-  const [selectedSeat, setSelectedSeat] = useState(null); // Store selected seat coordinates
+  const [selectedSeat, setSelectedSeat] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     setSeats(generateSeats());
     setSelectedSeat(null);
+    setShowModal(false);
   }, [floor]);
 
   const handleSeatClick = (rowIdx, colIdx) => {
     const currentStatus = seats[rowIdx][colIdx];
 
     if (currentStatus === "available") {
-      // If clicking same selected seat, deselect
       if (selectedSeat && selectedSeat[0] === rowIdx && selectedSeat[1] === colIdx) {
+        // Deselect if clicking same selected seat
         setSeats((prev) =>
           prev.map((row, rIdx) =>
             row.map((seat, cIdx) =>
@@ -45,8 +45,9 @@ const FloorPlan = ({ floor }) => {
           )
         );
         setSelectedSeat(null);
+        setShowModal(false);
       } else {
-        // Deselect any previous, select the new one
+        // Select new seat
         setSeats((prev) =>
           prev.map((row, rIdx) =>
             row.map((seat, cIdx) => {
@@ -57,12 +58,32 @@ const FloorPlan = ({ floor }) => {
           )
         );
         setSelectedSeat([rowIdx, colIdx]);
+        setShowModal(true);
       }
     }
   };
 
+  const handleCancel = () => {
+    if (!selectedSeat) return;
+    const [rowIdx, colIdx] = selectedSeat;
+    setSeats((prev) =>
+      prev.map((row, rIdx) =>
+        row.map((seat, cIdx) =>
+          rIdx === rowIdx && cIdx === colIdx ? "available" : seat
+        )
+      )
+    );
+    setSelectedSeat(null);
+    setShowModal(false);
+  };
+
+  const handleBook = () => {
+    setShowModal(false);
+    // You can later add backend booking here
+  };
+
   const getSeatLabel = (rowIdx, colIdx) => {
-    const rowLetter = String.fromCharCode(65 + rowIdx); // A = 65
+    const rowLetter = String.fromCharCode(65 + rowIdx);
     return `${rowLetter}${colIdx + 1}`;
   };
 
@@ -96,6 +117,34 @@ const FloorPlan = ({ floor }) => {
           </div>
         ))}
       </div>
+
+      {/* Modal */}
+      {showModal && selectedSeat && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl shadow-lg w-80 space-y-4">
+            <h2 className="text-xl font-bold text-gray-800 text-center">
+              Confirm Seat:{" "}
+              <span className="text-blue-600">
+                {getSeatLabel(selectedSeat[0], selectedSeat[1])}
+              </span>
+            </h2>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={handleBook}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold"
+              >
+                Book Now
+              </button>
+              <button
+                onClick={handleCancel}
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg font-semibold"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
