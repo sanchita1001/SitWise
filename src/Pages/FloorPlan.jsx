@@ -1,117 +1,141 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 const seatColors = {
   available: "bg-green-100 border-green-400 text-green-800",
-  occupied: "bg-red-100 border-red-400 text-red-800",
-  reserved: "bg-yellow-100 border-yellow-400 text-yellow-800",
+  booked: "bg-yellow-100 border-yellow-400 text-yellow-800",
+  confirmed: "bg-red-100 border-red-400 text-red-800",
   selected: "bg-blue-100 border-blue-400 text-blue-800",
 };
 
-const generateSeats = () => {
-  const statuses = ["available", "occupied", "reserved"];
-  const grid = [];
-  for (let i = 0; i < 8; i++) {
-    const row = [];
-    for (let j = 0; j < 8; j++) {
-      row.push(statuses[Math.floor(Math.random() * statuses.length)]);
-    }
-    grid.push(row);
-  }
-  return grid;
+// Map backend status to UI status
+const mapStatus = (seat, userId) => {
+  if (seat.status === "free") return "available";
+  if (seat.status === "booked" && seat.user_id === userId) return "selected";
+  if (seat.status === "booked") return "booked";
+  if (seat.status === "confirmed" && seat.user_id === userId) return "selected";
+  if (seat.status === "confirmed") return "confirmed";
+  return "available";
 };
 
 const FloorPlan = ({ floor }) => {
-  const [seats, setSeats] = useState(generateSeats());
+  const [seats, setSeats] = useState([]);
   const [selectedSeat, setSelectedSeat] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
   const [popupType, setPopupType] = useState(""); // book, vacate, switch
   const [popupSeat, setPopupSeat] = useState(null);
+  const [userId, setUserId] = useState(null);
+
+  // Fetch user info (assumes JWT in localStorage)
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      setUserId(payload.id || payload.sub);
+    } catch {
+      setUserId(null);
+    }
+  }, []);
+
+  // Fetch seats from backend
+  const fetchSeats = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/seats");
+      setSeats(res.data);
+      // Set selected seat if user has one booked/confirmed
+      const found = res.data.find(
+        (seat) =>
+          seat.user_id === userId &&
+          (seat.status === "booked" || seat.status === "confirmed")
+      );
+      setSelectedSeat(found ? found : null);
+    } catch (err) {
+      setSeats([]);
+    }
+  };
 
   useEffect(() => {
-    setSeats(generateSeats());
-    setSelectedSeat(null);
-  }, [floor]);
+    fetchSeats();
+    // eslint-disable-next-line
+  }, [floor, userId]);
 
-  const getSeatLabel = (rowIdx, colIdx) =>
-    `${String.fromCharCode(65 + rowIdx)}${colIdx + 1}`;
+  const handleSeatClick = (seat) => {
+    const status = mapStatus(seat, userId);
 
-  const handleSeatClick = (rowIdx, colIdx) => {
-    const currentStatus = seats[rowIdx][colIdx];
-    const clickedSeat = [rowIdx, colIdx];
-
-    // Seat is already selected, ask to vacate
-    if (
-      selectedSeat &&
-      selectedSeat[0] === rowIdx &&
-      selectedSeat[1] === colIdx &&
-      currentStatus === "selected"
-    ) {
+    if (selectedSeat && selectedSeat.id === seat.id && status === "selected") {
       setPopupType("vacate");
-      setPopupSeat(clickedSeat);
+      setPopupSeat(seat);
       setShowPopup(true);
-    }
-
-    // First time selecting an available seat
-    else if (!selectedSeat && currentStatus === "available") {
+    } else if (!selectedSeat && status === "available") {
       setPopupType("book");
-      setPopupSeat(clickedSeat);
+      setPopupSeat(seat);
       setShowPopup(true);
-    }
-
-    // Clicking another available seat while one is already selected
-    else if (
+    } else if (
       selectedSeat &&
-      currentStatus === "available" &&
-      (selectedSeat[0] !== rowIdx || selectedSeat[1] !== colIdx)
+      status === "available" &&
+      selectedSeat.id !== seat.id
     ) {
       setPopupType("switch");
-      setPopupSeat(clickedSeat);
+      setPopupSeat(seat);
       setShowPopup(true);
     }
   };
 
-  const handleBook = () => {
-    const [row, col] = popupSeat;
-    const updatedSeats = seats.map((r, rIdx) =>
-      r.map((seat, cIdx) =>
-        rIdx === row && cIdx === col ? "selected" : seat
-      )
-    );
-    setSeats(updatedSeats);
-    setSelectedSeat(popupSeat);
-    setShowPopup(false);
-    setPopupSeat(null);
+  // Book seat
+  const handleBook = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(
+        "http://localhost:5000/api/seats/book", // FULL URL
+        { seat_id: popupSeat.id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setShowPopup(false);
+      setPopupSeat(null);
+      fetchSeats();
+    } catch (err) {
+      alert(err.response?.data?.error || "Booking failed");
+    }
   };
 
-  const handleVacate = () => {
-    const [row, col] = popupSeat;
-    const updatedSeats = seats.map((r, rIdx) =>
-      r.map((seat, cIdx) =>
-        rIdx === row && cIdx === col ? "available" : seat
-      )
-    );
-    setSeats(updatedSeats);
-    setSelectedSeat(null);
-    setShowPopup(false);
-    setPopupSeat(null);
+  // Vacate seat
+  const handleVacate = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(
+        "http://localhost:5000/api/seats/cancel", // FULL URL
+        { seat_id: popupSeat.id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setShowPopup(false);
+      setPopupSeat(null);
+      fetchSeats();
+    } catch (err) {
+      alert(err.response?.data?.error || "Vacate failed");
+    }
   };
 
-  const handleSwitch = () => {
-    const [newRow, newCol] = popupSeat;
-    const [oldRow, oldCol] = selectedSeat;
-
-    const updatedSeats = seats.map((row, rIdx) =>
-      row.map((seat, cIdx) => {
-        if (rIdx === oldRow && cIdx === oldCol) return "available";
-        if (rIdx === newRow && cIdx === newCol) return "selected";
-        return seat;
-      })
-    );
-
-    setSeats(updatedSeats);
-    setSelectedSeat([newRow, newCol]);
-    setShowPopup(false);
-    setPopupSeat(null);
+  // Switch seat (cancel old, book new)
+  const handleSwitch = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(
+        "http://localhost:5000/api/seats/cancel", // FULL URL
+        { seat_id: selectedSeat.id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      await axios.post(
+        "http://localhost:5000/api/seats/book", // FULL URL
+        { seat_id: popupSeat.id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setShowPopup(false);
+      setPopupSeat(null);
+      fetchSeats();
+    } catch (err) {
+      alert(err.response?.data?.error || "Switch failed");
+    }
   };
 
   return (
@@ -120,29 +144,43 @@ const FloorPlan = ({ floor }) => {
 
       {/* Legend */}
       <div className="flex flex-wrap gap-4 mb-8">
-        {Object.entries(seatColors).map(([key, className]) => (
-          <div key={key} className="flex items-center gap-2">
-            <div className={`w-5 h-5 rounded-full border ${seatColors[key]}`} />
-            <span className="capitalize text-gray-700 font-medium">{key}</span>
-          </div>
-        ))}
+        <div className="flex items-center gap-2">
+          <div className={`w-5 h-5 rounded-full border ${seatColors.available}`} />
+          <span className="capitalize text-gray-700 font-medium">Available</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className={`w-5 h-5 rounded-full border ${seatColors.booked}`} />
+          <span className="capitalize text-gray-700 font-medium">Booked</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className={`w-5 h-5 rounded-full border ${seatColors.confirmed}`} />
+          <span className="capitalize text-gray-700 font-medium">Confirmed</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className={`w-5 h-5 rounded-full border ${seatColors.selected}`} />
+          <span className="capitalize text-gray-700 font-medium">Your Seat</span>
+        </div>
       </div>
 
-      {/* Seat Grid */}
-      <div className="space-y-3">
-        {seats.map((row, rowIdx) => (
-          <div key={rowIdx} className="flex justify-center gap-3">
-            {row.map((status, colIdx) => (
-              <button
-                key={`${rowIdx}-${colIdx}`}
-                onClick={() => handleSeatClick(rowIdx, colIdx)}
-                className={`w-14 h-14 rounded-lg font-medium text-sm border-2 flex items-center justify-center ${seatColors[status]}`}
-              >
-                {getSeatLabel(rowIdx, colIdx)}
-              </button>
-            ))}
-          </div>
-        ))}
+      {/* Seat List */}
+      <div className="flex flex-wrap gap-3 justify-center">
+        {seats.map((seat) => {
+          const status = mapStatus(seat, userId);
+          return (
+            <button
+              key={seat.id}
+              onClick={() => handleSeatClick(seat)}
+              className={`w-14 h-14 rounded-lg font-medium text-sm border-2 flex items-center justify-center ${seatColors[status]} ${
+                status === "available" || status === "selected"
+                  ? "cursor-pointer"
+                  : "cursor-not-allowed"
+              }`}
+              disabled={status !== "available" && status !== "selected"}
+            >
+              {seat.seat_number}
+            </button>
+          );
+        })}
       </div>
 
       {/* Popup */}
@@ -152,7 +190,7 @@ const FloorPlan = ({ floor }) => {
             {popupType === "book" && (
               <>
                 <h2 className="text-lg font-semibold">
-                  Do you want to book seat {getSeatLabel(...popupSeat)}?
+                  Do you want to book seat {popupSeat.seat_number}?
                 </h2>
                 <div className="flex justify-center gap-4 mt-4">
                   <button
@@ -173,7 +211,7 @@ const FloorPlan = ({ floor }) => {
             {popupType === "vacate" && (
               <>
                 <h2 className="text-lg font-semibold">
-                  Do you want to vacate seat {getSeatLabel(...popupSeat)}?
+                  Do you want to vacate seat {popupSeat.seat_number}?
                 </h2>
                 <div className="flex justify-center gap-4 mt-4">
                   <button
@@ -194,9 +232,9 @@ const FloorPlan = ({ floor }) => {
             {popupType === "switch" && (
               <>
                 <h2 className="text-lg font-semibold">
-                  You already booked seat {getSeatLabel(...selectedSeat)}.
+                  You already booked seat {selectedSeat.seat_number}.
                   <br />
-                  Do you want to switch to seat {getSeatLabel(...popupSeat)}?
+                  Do you want to switch to seat {popupSeat.seat_number}?
                 </h2>
                 <div className="flex justify-center gap-4 mt-4">
                   <button

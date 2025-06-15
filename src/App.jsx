@@ -39,6 +39,26 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    // Listen for auth state changes and store token
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setIsLoggedIn(!!session);
+        if (session?.access_token) {
+          localStorage.setItem("token", session.access_token);
+        }
+      }
+    );
+    // On mount, also check for an existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsLoggedIn(!!session);
+      if (session?.access_token) {
+        localStorage.setItem("token", session.access_token);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
   return (
     <BrowserRouter>
       <AnimatedRoutes isLoggedIn={isLoggedIn} />

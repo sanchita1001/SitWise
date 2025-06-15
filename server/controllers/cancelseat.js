@@ -2,7 +2,7 @@ const pool = require('../db');
 
 exports.cancelSeat = async (req, res) => {
   const { seat_id } = req.body;
-  const user_id = req.user.sub;
+  const user_id = req.user.id; // <-- FIXED
   try {
     const result = await pool.query(
       `UPDATE seats
