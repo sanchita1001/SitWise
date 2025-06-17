@@ -26,6 +26,17 @@ function FloorCard({ onSelectFloor, seats = [], isLoggedIn }) {
     return floor === 1 ? "orange" : "green";
   };
 
+  const colorMap = {
+    blue: {
+      bg: "bg-gradient-to-r from-blue-500 to-blue-400 hover:from-blue-600 hover:to-blue-500 text-white",
+      ring: "focus:ring-blue-300",
+    },
+    green: {
+      bg: "bg-gradient-to-r from-green-500 to-green-400 hover:from-green-600 hover:to-green-500 text-white",
+      ring: "focus:ring-green-300",
+    },
+  };
+
   // Helper for button content
   const FloorButton = ({ floor, color, children }) => (
     <button
@@ -34,9 +45,9 @@ function FloorCard({ onSelectFloor, seats = [], isLoggedIn }) {
       disabled={!isLoggedIn}
       className={`
         w-full flex items-center justify-center gap-2 font-bold py-3 rounded-2xl shadow-md transition-all duration-200
-        transform focus:outline-none focus:ring-2 focus:ring-${color}-300
+        transform ${colorMap[color].ring}
         ${isLoggedIn
-          ? `bg-gradient-to-r from-${color}-500 to-${color}-400 hover:from-${color}-600 hover:to-${color}-500 text-white hover:scale-[1.03] active:scale-[0.98] cursor-pointer`
+          ? `${colorMap[color].bg} hover:scale-[1.03] active:scale-[0.98] cursor-pointer`
           : "bg-gray-200 text-gray-400 cursor-not-allowed"}
         group
       `}

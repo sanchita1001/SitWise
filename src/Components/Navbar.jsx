@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 
 function Navbar({ isLoggedIn, onContactClick, onFeaturesClick }) {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -65,6 +66,7 @@ function Navbar({ isLoggedIn, onContactClick, onFeaturesClick }) {
       className={`${
         isScrolled ? "bg-white shadow-md" : "bg-white/30 backdrop-blur-md"
       } fixed top-0 left-0 w-full z-50 flex items-center justify-between px-4 sm:px-6 py-3 rounded-b-xl transition-all duration-300`}
+      style={{ minHeight: 56 }}
     >
       {/* Logo */}
       <div
@@ -87,7 +89,7 @@ function Navbar({ isLoggedIn, onContactClick, onFeaturesClick }) {
       {/* Hamburger for mobile */}
       <div className="sm:hidden flex items-center z-50">
         <button
-          className="p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300"
+          className="p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300"
           onClick={() => setMenuOpen((prev) => !prev)}
           aria-label="Toggle menu"
         >
@@ -163,46 +165,60 @@ function Navbar({ isLoggedIn, onContactClick, onFeaturesClick }) {
       </div>
 
       {/* Mobile Menu */}
-      {menuOpen && (
-        <div className="fixed inset-0 top-[64px] bg-white z-40 flex flex-col items-center py-6 gap-4 animate-fade-in max-h-[calc(100vh-64px)] overflow-y-auto w-full shadow-lg rounded-b-xl">
-          <button
-            onClick={onFeaturesClick}
-            className="text-gray-700 text-lg font-medium hover:text-blue-600 transition-colors w-11/12 py-3 rounded-lg focus:outline-none"
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            key="mobile-menu"
+            initial={{ opacity: 0, y: -32 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -32 }}
+            transition={{ duration: 0.28, ease: "easeInOut" }}
+            className="fixed left-0 right-0 top-[56px] bg-white z-50 flex flex-col items-center py-6 gap-4 h-[calc(100vh-56px)] w-full shadow-lg overflow-y-auto overflow-x-hidden"
           >
-            Features
-          </button>
-          <span className="text-gray-700 text-lg font-medium hover:text-blue-600 transition-colors w-11/12 py-3 rounded-lg cursor-default">
-            How it Works
-          </span>
-          <button
-            onClick={handleContact}
-            className="text-gray-700 text-lg font-medium hover:text-blue-600 transition-colors w-11/12 py-3 rounded-lg focus:outline-none"
-          >
-            Contact
-          </button>
-          <button
-            onClick={handleBookNow}
-            className="w-11/12 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 rounded-lg shadow transition-all duration-200"
-          >
-            Book Now
-          </button>
-          {!isLoggedIn ? (
             <button
-              onClick={handleLogin}
-              className="w-11/12 px-5 py-3 rounded-lg font-semibold shadow transition-all duration-200 bg-white border border-blue-500 text-blue-600 hover:bg-blue-50"
+              onClick={onFeaturesClick}
+              className="text-gray-700 text-lg font-medium hover:text-blue-600 transition-colors w-11/12 py-4 rounded-lg focus:outline-none"
             >
-              Login
+              Features
             </button>
-          ) : (
             <button
-              onClick={handleLogout}
-              className="w-11/12 px-5 py-3 rounded-lg font-semibold shadow transition-all duration-200 bg-gray-200 border border-blue-500 text-blue-600 hover:bg-gray-300"
+              disabled
+              className="block w-11/12 text-center text-gray-700 text-lg font-medium hover:text-blue-600 transition-colors py-4 rounded-lg cursor-default focus:outline-none"
+              tabIndex={-1}
+              aria-disabled="true"
             >
-              Logout
+              How it Works
             </button>
-          )}
-        </div>
-      )}
+            <button
+              onClick={handleContact}
+              className="text-gray-700 text-lg font-medium hover:text-blue-600 transition-colors w-11/12 py-4 rounded-lg focus:outline-none"
+            >
+              Contact
+            </button>
+            <button
+              onClick={handleBookNow}
+              className="w-11/12 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-4 rounded-lg shadow transition-all duration-200"
+            >
+              Book Now
+            </button>
+            {!isLoggedIn ? (
+              <button
+                onClick={handleLogin}
+                className="w-11/12 px-5 py-4 rounded-lg font-semibold shadow transition-all duration-200 bg-white border border-blue-500 text-blue-600 hover:bg-blue-50"
+              >
+                Login
+              </button>
+            ) : (
+              <button
+                onClick={handleLogout}
+                className="w-11/12 px-5 py-4 rounded-lg font-semibold shadow transition-all duration-200 bg-gray-200 border border-blue-500 text-blue-600 hover:bg-gray-300"
+              >
+                Logout
+              </button>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 }

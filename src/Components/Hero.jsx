@@ -1,7 +1,18 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
-function Hero({ scrollToFloor }) {
+function Hero({ scrollToFloor, isLoggedIn }) {
+  const navigate = useNavigate();
+
+  const handleBookNow = () => {
+    if (isLoggedIn) {
+      scrollToFloor && scrollToFloor();
+    } else {
+      navigate("/auth");
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center text-center px-4 sm:px-6">
       <motion.h1
@@ -30,7 +41,7 @@ function Hero({ scrollToFloor }) {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.98 }}
           className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transition-all duration-300 w-full sm:w-auto"
-          onClick={scrollToFloor}
+          onClick={handleBookNow}
         >
           <span className="mr-2">🕒</span> Book Your Seat Now
         </motion.button>

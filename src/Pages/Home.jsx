@@ -8,6 +8,7 @@ import Footer from "../Components/Footer.jsx";
 import Features from "../Components/Features.jsx";
 import HowItWorks from "../Components/HowItWorks";
 import axios from "axios";
+import LeaveSeat from "../Components/LeaveSeat";
 
 function Home({ isLoggedIn }) {
   const location = useLocation();
@@ -18,6 +19,7 @@ function Home({ isLoggedIn }) {
   const footerRef = useRef(null);
   const [mySeat, setMySeat] = useState(null);
   const [seats, setSeats] = useState([]);
+  const [vacateLoading, setVacateLoading] = useState(false);
 
   const scrollToFloor = () => floorRef.current?.scrollIntoView({ behavior: "smooth" });
   const scrollToFeatures = () => featuresRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -66,6 +68,7 @@ function Home({ isLoggedIn }) {
 
   const handleVacate = async () => {
     try {
+      setVacateLoading(true);
       const token = localStorage.getItem("token");
       await axios.post(
         "http://localhost:5000/api/seats/cancel",
@@ -76,6 +79,8 @@ function Home({ isLoggedIn }) {
       fetchMySeat();
     } catch (err) {
       setSuccessMessage(err.response?.data?.error || "Vacate failed");
+    } finally {
+      setVacateLoading(false);
     }
   };
 
@@ -108,7 +113,7 @@ function Home({ isLoggedIn }) {
           )}
         </AnimatePresence>
 
-        <Hero scrollToFloor={scrollToFloor} scrollToFeatures={scrollToFeatures} />
+        <Hero scrollToFloor={scrollToFloor} isLoggedIn={isLoggedIn} />
 
         <div ref={floorRef}>
           <Floorcard onSelectFloor={handleSelectFloor} seats={seats} isLoggedIn={isLoggedIn} />
@@ -123,6 +128,8 @@ function Home({ isLoggedIn }) {
         <div ref={footerRef}>
           <Footer isLoggedIn={isLoggedIn} />
         </div>
+
+        <LeaveSeat mySeat={mySeat} onVacate={handleVacate} loading={vacateLoading} />
       </motion.div>
     </>
   );

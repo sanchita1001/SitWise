@@ -9,18 +9,19 @@ import CheckIn from "./Pages/CheckIn";
 import MyReservations from "./Pages/MyReservations"; // Import MyReservations page
 import supabase from "./supabase/client";
 import './App.css'
+import PageWrapper from "./components/PageWrapper";
 
 function AnimatedRoutes({ isLoggedIn }) {
   const location = useLocation();
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<Home isLoggedIn={isLoggedIn} />} />
-        <Route path="/floorplan/:floorId" element={<FloorPlan />} />
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/confirm/:seatId" element={<ConfirmSeat />} />
-        <Route path="/checkin/:seatId" element={<CheckIn />} />
-        <Route path="/reservations" element={<MyReservations isLoggedIn={isLoggedIn} />} /> {/* Add route for MyReservations */}
+        <Route path="/" element={<PageWrapper><Home isLoggedIn={isLoggedIn} /></PageWrapper>} />
+        <Route path="/floorplan/:floorId" element={<PageWrapper><FloorPlan /></PageWrapper>} />
+        <Route path="/auth" element={<PageWrapper><Auth /></PageWrapper>} />
+        <Route path="/confirm/:seatId" element={<PageWrapper><ConfirmSeat /></PageWrapper>} />
+        <Route path="/checkin/:seatId" element={<PageWrapper><CheckIn /></PageWrapper>} />
+        <Route path="/reservations" element={<PageWrapper><MyReservations isLoggedIn={isLoggedIn} /></PageWrapper>} />
       </Routes>
     </AnimatePresence>
   );
