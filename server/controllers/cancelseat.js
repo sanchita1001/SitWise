@@ -1,8 +1,16 @@
 const pool = require('../db');
 
+/**
+ * Cancel a booked or confirmed seat for the authenticated user.
+ */
 exports.cancelSeat = async (req, res) => {
   const { seat_id } = req.body;
-  const user_id = req.user.id; // <-- FIXED
+  const user_id = req.user.id;
+
+  if (!seat_id) {
+    return res.status(400).json({ error: 'Seat ID is required.' });
+  }
+
   try {
     const result = await pool.query(
       `UPDATE seats
@@ -13,12 +21,12 @@ exports.cancelSeat = async (req, res) => {
     );
 
     if (result.rowCount === 0) {
-      return res.status(400).json({ error: 'Seat cannot be cancelled' });
+      return res.status(409).json({ error: 'Seat cannot be cancelled. It may not be booked/confirmed or may belong to another user.' });
     }
 
-    res.json({ message: 'Seat cancelled', seat: result.rows[0] });
+    res.status(200).json({ message: 'Seat cancelled successfully.', seat: result.rows[0] });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ error: 'Server error' });
+    console.error('[CancelSeat] Database error:', err);
+    res.status(500).json({ error: 'Internal server error.' });
   }
 };

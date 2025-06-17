@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
+
+const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
 const seatColors = {
   available: "bg-green-100 border-green-400 text-green-800",
@@ -23,6 +25,9 @@ const FloorPlan = () => {
   const floor = parseInt(floorId, 10);
   const [seats, setSeats] = useState([]);
   const [userId, setUserId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [apiError, setApiError] = useState("");
+  const [retryCount, setRetryCount] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,41 +41,92 @@ const FloorPlan = () => {
     }
   }, []);
 
+  const fetchSeats = useCallback(async () => {
+    setLoading(true);
+    setApiError("");
+    try {
+      const res = await axios.get(`${API_URL}/api/seats`);
+      setSeats(res.data);
+    } catch {
+      setApiError("Failed to load seats. Please check your connection.");
+      setSeats([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    const fetchSeats = async () => {
-      try {
-        const res = await axios.get("http://localhost:5000/api/seats");
-        setSeats(res.data);
-      } catch {
-        setSeats([]);
-      }
-    };
     fetchSeats();
-  }, [floor]);
+  }, [fetchSeats, floor, retryCount]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-blue-50" aria-busy="true">
+        <div className="bg-white p-8 rounded-xl shadow-lg w-96 text-center">
+          <span className="text-lg font-semibold">Loading seats…</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (apiError) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-blue-50" role="alert">
+        <div className="bg-white p-8 rounded-xl shadow-lg w-96 text-center">
+          <h2 className="text-xl font-bold mb-4 text-red-500">Error</h2>
+          <div className="mb-4 text-gray-700">{apiError}</div>
+          <button
+            className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
+            onClick={() => setRetryCount(c => c + 1)}
+            aria-label="Retry loading seats"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const filteredSeats = seats.filter(seat => seat.floor === floor);
+
+  if (filteredSeats.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-blue-50" role="status">
+        <div className="bg-white p-8 rounded-xl shadow-lg w-96 text-center">
+          <h2 className="text-xl font-bold mb-4 text-gray-700">No seats found for this floor.</h2>
+          <button
+            className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
+            onClick={() => navigate("/")}
+          >
+            Go Home
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 min-h-screen bg-gradient-to-r from-blue-50 to-white relative">
       <h1 className="text-3xl font-bold mb-6">Floor Plan - Level {floor}</h1>
-      <div className="flex flex-wrap gap-3 justify-center">
-        {seats
-          .filter((seat) => seat.floor === floor)
-          .map((seat) => {
-            const status = mapStatus(seat, userId);
-            return (
-              <button
-                key={seat.id}
-                onClick={() => navigate(`/confirm/${seat.id}`)}
-                className={`w-14 h-14 rounded-lg font-medium text-sm border-2 flex items-center justify-center ${seatColors[status]} ${
-                  status === "available" || status === "selected"
-                    ? "cursor-pointer"
-                    : "cursor-not-allowed"
-                }`}
-                disabled={status !== "available" && status !== "selected"}
-              >
-                {seat.seat_number}
-              </button>
-            );
-          })}
+      <div className="flex flex-wrap gap-3 justify-center" aria-label={`Seats for floor ${floor}`}>
+        {filteredSeats.map((seat) => {
+          const status = mapStatus(seat, userId);
+          return (
+            <button
+              key={seat.id}
+              onClick={() => navigate(`/confirm/${seat.id}`)}
+              className={`w-14 h-14 rounded-lg font-medium text-sm border-2 flex items-center justify-center ${seatColors[status]} ${
+                status === "available" || status === "selected"
+                  ? "cursor-pointer"
+                  : "cursor-not-allowed"
+              } focus:outline-none focus:ring-2 focus:ring-blue-400`}
+              disabled={status !== "available" && status !== "selected"}
+              aria-label={`Seat ${seat.seat_number} is ${status}`}
+            >
+              {seat.seat_number}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
