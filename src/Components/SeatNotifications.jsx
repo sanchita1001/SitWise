@@ -10,11 +10,13 @@ const icons = {
   released: <XCircle className="text-green-500 w-6 h-6" />,
 };
 
+const NOTIFICATION_BOTTOM_MARGIN = 112; // px, adjust if LeaveSeat height changes
+
 export default function SeatNotifications() {
   const [notifications, setNotifications] = useState([]);
   const prevSeats = useRef([]);
 
-  // Poll every 3 seconds
+  // Poll every 20 seconds (or adjust as needed)
   useEffect(() => {
     const fetchSeats = async () => {
       try {
@@ -32,6 +34,7 @@ export default function SeatNotifications() {
                 {
                   id: Date.now() + Math.random(),
                   seat_number: seat.seat_number,
+                  floor: seat.floor, // Add floor info
                   action: seat.status === "free" ? "released" : "booked",
                   timestamp: new Date(),
                 },
@@ -50,12 +53,12 @@ export default function SeatNotifications() {
     return () => clearInterval(interval);
   }, []);
 
-  // Auto-dismiss after 4s
+  // Auto-dismiss after 5s
   useEffect(() => {
     if (notifications.length === 0) return;
     const timer = setTimeout(() => {
       setNotifications((prev) => prev.slice(1));
-    }, 5000);
+    }, 2000);
     return () => clearTimeout(timer);
   }, [notifications]);
 
@@ -64,7 +67,13 @@ export default function SeatNotifications() {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-3 max-w-xs w-full">
+    <div
+      className="fixed right-4 z-50 flex flex-col items-end gap-3 max-w-xs w-full"
+      style={{
+        bottom: NOTIFICATION_BOTTOM_MARGIN, // Push notifications up above LeaveSeat
+        pointerEvents: "none", // allow LeaveSeat button to be clickable
+      }}
+    >
       <AnimatePresence>
         {notifications.map((n) => (
           <motion.div
@@ -74,12 +83,14 @@ export default function SeatNotifications() {
             exit={{ opacity: 0, x: 80, scale: 0.95 }}
             transition={{ type: "spring", duration: 0.4 }}
             className="flex items-center gap-3 bg-white rounded-2xl shadow-xl px-5 py-4 border border-gray-100 w-full cursor-pointer hover:shadow-2xl"
+            style={{ pointerEvents: "auto" }}
             onClick={() => dismiss(n.id)}
           >
             {icons[n.action]}
             <div className="flex-1">
               <div className="font-bold text-gray-900 text-base">
-                Seat {n.seat_number} {n.action === "booked" ? "booked" : "released"}
+                Seat {n.seat_number} (Floor {n.floor}){" "}
+                {n.action === "booked" ? "booked" : "released"}
               </div>
               <div className="text-xs text-gray-500">
                 {new Date(n.timestamp).toLocaleTimeString()}
