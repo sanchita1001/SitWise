@@ -1,14 +1,22 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
+import { gsap } from "gsap";
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
 const seatColors = {
-  available: "bg-green-100 border-green-400 text-green-800",
-  booked: "bg-yellow-100 border-yellow-400 text-yellow-800",
-  confirmed: "bg-red-100 border-red-400 text-red-800",
-  selected: "bg-blue-100 border-blue-400 text-blue-800",
+  available: "bg-green-100 text-green-800 border-green-400",
+  booked: "bg-yellow-100 text-yellow-800 border-yellow-400",
+  confirmed: "bg-red-100 text-red-800 border-red-400",
+  selected: "bg-blue-100 text-blue-800 border-blue-400",
+};
+
+const statusLabels = {
+  available: "Available",
+  booked: "Booked",
+  confirmed: "Occupied",
+  selected: "Your Seat",
 };
 
 const mapStatus = (seat, userId) => {
@@ -29,6 +37,7 @@ const FloorPlan = () => {
   const [apiError, setApiError] = useState("");
   const [retryCount, setRetryCount] = useState(0);
   const navigate = useNavigate();
+  const gridRef = useRef(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -59,11 +68,28 @@ const FloorPlan = () => {
     fetchSeats();
   }, [fetchSeats, floor, retryCount]);
 
+  useEffect(() => {
+    if (!loading && gridRef.current) {
+      gsap.fromTo(
+        gridRef.current.children,
+        { opacity: 0, y: 30, scale: 0.9 },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          stagger: 0.05,
+          duration: 0.5,
+          ease: "power2.out",
+        }
+      );
+    }
+  }, [loading, seats, floor]);
+
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-blue-50" aria-busy="true">
-        <div className="bg-white p-8 rounded-xl shadow-lg w-96 text-center">
-          <span className="text-lg font-semibold">Loading seats…</span>
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="bg-white p-8 rounded-xl shadow-md text-center w-80">
+          <span className="text-gray-600 text-lg font-medium animate-pulse">Loading seats…</span>
         </div>
       </div>
     );
@@ -71,14 +97,13 @@ const FloorPlan = () => {
 
   if (apiError) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-blue-50" role="alert">
-        <div className="bg-white p-8 rounded-xl shadow-lg w-96 text-center">
-          <h2 className="text-xl font-bold mb-4 text-red-500">Error</h2>
-          <div className="mb-4 text-gray-700">{apiError}</div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="bg-white p-8 rounded-xl shadow-md text-center w-80">
+          <h2 className="text-xl font-semibold text-red-600 mb-4">Error</h2>
+          <p className="text-gray-700 mb-4">{apiError}</p>
           <button
-            className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
             onClick={() => setRetryCount(c => c + 1)}
-            aria-label="Retry loading seats"
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
           >
             Retry
           </button>
@@ -91,12 +116,14 @@ const FloorPlan = () => {
 
   if (filteredSeats.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-blue-50" role="status">
-        <div className="bg-white p-8 rounded-xl shadow-lg w-96 text-center">
-          <h2 className="text-xl font-bold mb-4 text-gray-700">No seats found for this floor.</h2>
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="bg-white p-8 rounded-xl shadow-md text-center w-80">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            No seats found on this floor.
+          </h2>
           <button
-            className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
             onClick={() => navigate("/")}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
           >
             Go Home
           </button>
@@ -106,27 +133,62 @@ const FloorPlan = () => {
   }
 
   return (
-    <div className="p-6 min-h-screen bg-gradient-to-r from-blue-50 to-white relative">
-      <h1 className="text-3xl font-bold mb-6">Floor Plan - Level {floor}</h1>
-      <div className="flex flex-wrap gap-3 justify-center" aria-label={`Seats for floor ${floor}`}>
-        {filteredSeats.map((seat) => {
-          const status = mapStatus(seat, userId);
-          return (
-            <button
-              key={seat.id}
-              onClick={() => navigate(`/confirm/${seat.id}`)}
-              className={`w-14 h-14 rounded-lg font-medium text-sm border-2 flex items-center justify-center ${seatColors[status]} ${
-                status === "available" || status === "selected"
-                  ? "cursor-pointer"
-                  : "cursor-not-allowed"
-              } focus:outline-none focus:ring-2 focus:ring-blue-400`}
-              disabled={status !== "available" && status !== "selected"}
-              aria-label={`Seat ${seat.seat_number} is ${status}`}
-            >
-              {seat.seat_number}
-            </button>
-          );
-        })}
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-10">
+      <div className="max-w-6xl mx-auto bg-white border border-gray-200 rounded-2xl shadow-lg p-10">
+        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2 text-center">
+          Floor {floor} Plan
+        </h1>
+        <p className="text-gray-600 text-base sm:text-lg text-center mb-10">
+          Select an available seat to reserve your spot.
+        </p>
+
+        <div
+          ref={gridRef}
+          className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-6 justify-items-center"
+        >
+          {filteredSeats.map((seat) => {
+            const status = mapStatus(seat, userId);
+            return (
+              <button
+                key={seat.id}
+                onClick={() => navigate(`/confirm/${seat.id}`)}
+                disabled={status !== "available" && status !== "selected"}
+                className={`
+                  relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl font-semibold text-lg border
+                  flex items-center justify-center transition transform
+                  ${seatColors[status]}
+                  ${status === "available" || status === "selected"
+                    ? "hover:scale-105 hover:shadow-md cursor-pointer"
+                    : "opacity-60 cursor-not-allowed"}
+                  focus:outline-none focus:ring-2 focus:ring-blue-300 group
+                `}
+                aria-label={`Seat ${seat.seat_number} is ${statusLabels[status]}`}
+              >
+                <span className="text-2xl">{seat.seat_number}</span>
+                <span
+                  className={`
+                    absolute -bottom-4 left-1/2 transform -translate-x-1/2 px-3 py-0.5 text-xs font-medium rounded-full border
+                    ${
+                      status === "available"
+                        ? "bg-white text-green-700 border-green-300"
+                        : status === "selected"
+                        ? "bg-white text-blue-700 border-blue-300"
+                        : status === "booked"
+                        ? "bg-white text-yellow-700 border-yellow-300"
+                        : "bg-white text-red-700 border-red-300"
+                    }
+                    group-hover:scale-105 transition transform
+                  `}
+                >
+                  {statusLabels[status]}
+                </span>
+                {status === "selected" && (
+                  <span className="absolute inset-0 rounded-xl animate-pulse bg-blue-300/20 pointer-events-none" />
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import Auth from "./Pages/Auth";
 import FloorPlan from "./Pages/FloorPlan";
 import ConfirmSeat from "./Pages/ConfirmSeat";
 import CheckIn from "./Pages/CheckIn";
+import MyReservations from "./Pages/MyReservations"; // Import MyReservations page
 import supabase from "./supabase/client";
 import './App.css'
 
@@ -19,6 +20,7 @@ function AnimatedRoutes({ isLoggedIn }) {
         <Route path="/auth" element={<Auth />} />
         <Route path="/confirm/:seatId" element={<ConfirmSeat />} />
         <Route path="/checkin/:seatId" element={<CheckIn />} />
+        <Route path="/reservations" element={<MyReservations isLoggedIn={isLoggedIn} />} /> {/* Add route for MyReservations */}
       </Routes>
     </AnimatePresence>
   );
@@ -61,6 +63,17 @@ function App() {
       }
     });
     return () => subscription.unsubscribe();
+  }, []);
+
+  // Listen for logout event (from Navbar)
+  useEffect(() => {
+    const handleLogout = async () => {
+      await supabase.auth.signOut();
+      localStorage.removeItem("token");
+      setIsLoggedIn(false);
+    };
+    window.handleLogout = handleLogout; // Expose globally for Navbar
+    return () => { delete window.handleLogout; };
   }, []);
 
   return (

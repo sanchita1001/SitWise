@@ -44,14 +44,17 @@ exports.bookSeat = async (req, res) => {
       return res.status(409).json({ error: 'You have already booked or confirmed this seat.' });
     }
 
-    // Prevent user from booking more than one seat
+    // If user already has a seat, free it before booking new one
     const userSeatRes = await pool.query(
       "SELECT * FROM seats WHERE user_id = $1 AND (status = 'booked' OR status = 'confirmed')",
       [user_id]
     );
     if (userSeatRes.rowCount > 0) {
-      await pool.query('ROLLBACK');
-      return res.status(409).json({ error: 'You have already booked another seat.' });
+      const oldSeatId = userSeatRes.rows[0].id;
+      await pool.query(
+        `UPDATE seats SET status = 'free', user_id = NULL, booked_at = NULL, expires_at = NULL WHERE id = $1`,
+        [oldSeatId]
+      );
     }
 
     // Book the seat

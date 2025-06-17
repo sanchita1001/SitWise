@@ -2,10 +2,11 @@ import React, { useRef, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Hero from "../Components/Hero.jsx";
-import Floorcard from '../Components/floorcard.jsx';
+import Floorcard from '../Components/Floorcard.jsx';
 import Navbar from "../Components/Navbar.jsx";
 import Footer from "../Components/Footer.jsx";
 import Features from "../Components/Features.jsx";
+import HowItWorks from "../Components/HowItWorks";
 import axios from "axios";
 
 function Home({ isLoggedIn }) {
@@ -16,6 +17,7 @@ function Home({ isLoggedIn }) {
   const featuresRef = useRef(null);
   const footerRef = useRef(null);
   const [mySeat, setMySeat] = useState(null);
+  const [seats, setSeats] = useState([]);
 
   const scrollToFloor = () => floorRef.current?.scrollIntoView({ behavior: "smooth" });
   const scrollToFeatures = () => featuresRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -40,13 +42,26 @@ function Home({ isLoggedIn }) {
     setMySeat(found || null);
   };
 
+  // Fetch all seats for real-time updates
+  const fetchSeats = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/seats");
+      setSeats(res.data);
+    } catch {
+      setSeats([]);
+    }
+  };
+
   useEffect(() => {
     fetchMySeat();
+    fetchSeats();
+    const interval = setInterval(fetchSeats, 5000); // Poll every 5s for real-time
     // Clear success message after 3 seconds
     if (successMessage) {
       const timer = setTimeout(() => setSuccessMessage(""), 3000);
       return () => clearTimeout(timer);
     }
+    return () => clearInterval(interval);
   }, [isLoggedIn, successMessage]);
 
   const handleVacate = async () => {
@@ -96,30 +111,19 @@ function Home({ isLoggedIn }) {
         <Hero scrollToFloor={scrollToFloor} scrollToFeatures={scrollToFeatures} />
 
         <div ref={floorRef}>
-          <Floorcard onSelectFloor={handleSelectFloor} />
+          <Floorcard onSelectFloor={handleSelectFloor} seats={seats} isLoggedIn={isLoggedIn} />
         </div>
 
-        {mySeat && (
-          <div className="flex justify-center my-8">
-            <button
-              className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-8 py-3 rounded-xl shadow-lg text-lg font-semibold hover:scale-105 transition-transform"
-              onClick={handleVacate}
-            >
-              Set my seat free (Seat {mySeat.seat_number}, Floor {mySeat.floor})
-            </button>
-          </div>
-        )}
+        {/* Add HowItWorks section here, just after Floorcard and before Features */}
+        <HowItWorks />
+
+        <div ref={featuresRef}>
+          <Features />
+        </div>
+        <div ref={footerRef}>
+          <Footer isLoggedIn={isLoggedIn} />
+        </div>
       </motion.div>
-
-      {/* Features Section */}
-      <div ref={featuresRef}>
-        <Features />
-      </div>
-
-      {/* Footer Section */}
-      <div ref={footerRef}>
-        <Footer />
-      </div>
     </>
   );
 }

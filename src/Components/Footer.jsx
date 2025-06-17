@@ -1,8 +1,9 @@
 import React from "react";
 import { FaGithub } from "react-icons/fa";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
-export default function Footer() {
+export default function Footer({ isLoggedIn }) {
   return (
     <footer className="bg-gradient-to-t from-gray-100 via-white to-gray-50 text-gray-800 mt-10 shadow-inner rounded-t-2xl">
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -20,11 +21,20 @@ export default function Footer() {
             whileHover={{ scale: 1.03 }}
             className="flex flex-wrap justify-center md:justify-start gap-2 sm:gap-4 text-sm sm:text-base font-medium"
           >
-            <a href="/" className="transition-colors px-3 py-1 rounded-lg hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200">Home</a>
-            <a href="/book" className="transition-colors px-3 py-1 rounded-lg hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200">Book Seat</a>
-            <a href="/reservations" className="transition-colors px-3 py-1 rounded-lg hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200">My Reservations</a>
-            {/* <a href="/about" className="transition-colors px-3 py-1 rounded-lg hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200">About</a> */}
-            <a href="/contact" className="transition-colors px-3 py-1 rounded-lg hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200">Contact</a>
+            <Link to="/" className="transition-colors px-3 py-1 rounded-lg hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200">Home</Link>
+            {isLoggedIn ? (
+              <Link to="/floorplan/1" className="transition-colors px-3 py-1 rounded-lg hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200">Book Seat</Link>
+            ) : (
+              <span
+                className="transition-colors px-3 py-1 rounded-lg text-gray-400 cursor-not-allowed"
+                aria-disabled="true"
+                title="Login to book seats"
+              >
+                Book Seat
+              </span>
+            )}
+            <Link to="/reservations" className="transition-colors px-3 py-1 rounded-lg hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200">My Reservations</Link>
+            <Link to="/contact" className="transition-colors px-3 py-1 rounded-lg hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200">Contact</Link>
           </motion.div>
 
           {/* Social */}

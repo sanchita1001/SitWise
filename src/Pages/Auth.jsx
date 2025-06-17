@@ -27,7 +27,7 @@ function AuthForm() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -40 }}
       transition={{ duration: 0.4 }}
-      className="min-h-screen flex items-center justify-center bg-white" 
+      className="min-h-screen flex items-center justify-center bg-white"
     >
       <div
         ref={cardRef}
@@ -37,6 +37,7 @@ function AuthForm() {
           src="https://img.icons8.com/ios-filled/50/000000/open-book--v1.png"
           alt="SitWise Logo"
           className="w-14 h-14 mb-4"
+          style={{ width: "3.5rem", height: "3.5rem", maxWidth: "100%" }}
         />
         <h1 className="text-3xl font-extrabold text-blue-700 mb-2 tracking-tight text-center">
           Welcome to SitWise
