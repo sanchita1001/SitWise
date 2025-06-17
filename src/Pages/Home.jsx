@@ -57,7 +57,10 @@ function Home({ isLoggedIn }) {
   useEffect(() => {
     fetchMySeat();
     fetchSeats();
-    const interval = setInterval(fetchSeats, 5000); // Poll every 5s for real-time
+    const interval = setInterval(() => {
+      fetchSeats();
+      fetchMySeat();
+    }, 20000); // every 20 seconds
     // Clear success message after 3 seconds
     if (successMessage) {
       const timer = setTimeout(() => setSuccessMessage(""), 3000);
@@ -76,7 +79,11 @@ function Home({ isLoggedIn }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setSuccessMessage("Seat released successfully!");
-      fetchMySeat();
+      setMySeat(null); // Optimistically clear seat
+      setTimeout(async () => {
+        await fetchSeats();
+        await fetchMySeat();
+      }, 300); // Add a short delay to ensure backend updates
     } catch (err) {
       setSuccessMessage(err.response?.data?.error || "Vacate failed");
     } finally {

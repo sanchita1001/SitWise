@@ -1,21 +1,28 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Bar, Pie } from "react-chartjs-2";
 import {
-  Chart as ChartJS,
-  BarElement,
-  CategoryScale,
-  LinearScale,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
   Tooltip,
+  PieChart,
+  Pie,
+  Cell,
   Legend,
-  ArcElement,
-} from "chart.js";
+  CartesianGrid,
+} from "recharts";
 import { motion } from "framer-motion";
 
-ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend, ArcElement);
-
 const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+
+const STATUS_COLORS = {
+  booked: "#facc15",
+  confirmed: "#22c55e",
+  free: "#e5e7eb",
+};
 
 function MyReservations({ isLoggedIn }) {
   const [reservations, setReservations] = useState([]);
@@ -30,7 +37,7 @@ function MyReservations({ isLoggedIn }) {
     }
   }, [isLoggedIn, navigate]);
 
-  // Fetch user's reservations
+  // Fetch user's full reservation history
   useEffect(() => {
     const fetchReservations = async () => {
       setLoading(true);
@@ -40,12 +47,11 @@ function MyReservations({ isLoggedIn }) {
         if (!token) throw new Error("Not authenticated");
         const payload = JSON.parse(atob(token.split(".")[1]));
         const userId = payload.id || payload.sub;
-        const res = await axios.get(`${API_URL}/api/seats`);
-        // Filter reservations for this user
-        const userReservations = res.data.filter(
-          seat => seat.user_id === userId && seat.status !== "free"
+        // Fetch all reservations for this user (including history)
+        const res = await axios.get(
+          `${API_URL}/api/reservations?user_id=${userId}`
         );
-        setReservations(userReservations);
+        setReservations(res.data || []);
       } catch (err) {
         setApiError("Failed to load reservations. Please try again.");
       } finally {
@@ -58,10 +64,9 @@ function MyReservations({ isLoggedIn }) {
   // Data for charts
   const chartData = useMemo(() => {
     // Group by status
-    const statusCounts = { booked: 0, confirmed: 0 };
+    const statusCounts = { booked: 0, confirmed: 0, free: 0 };
     reservations.forEach(r => {
-      if (r.status === "booked") statusCounts.booked++;
-      if (r.status === "confirmed") statusCounts.confirmed++;
+      statusCounts[r.status] = (statusCounts[r.status] || 0) + 1;
     });
 
     // Bookings by hour (for peak times)
@@ -73,9 +78,21 @@ function MyReservations({ isLoggedIn }) {
       }
     });
 
+    // Prepare data for recharts
+    const statusPie = Object.keys(statusCounts).map(status => ({
+      name: status.charAt(0).toUpperCase() + status.slice(1),
+      value: statusCounts[status],
+      fill: STATUS_COLORS[status] || "#8884d8",
+    }));
+
+    const hourBar = hourCounts.map((count, hour) => ({
+      hour: `${hour}:00`,
+      Bookings: count,
+    }));
+
     return {
-      statusCounts,
-      hourCounts,
+      statusPie,
+      hourBar,
     };
   }, [reservations]);
 
@@ -97,13 +114,20 @@ function MyReservations({ isLoggedIn }) {
         transition={{ duration: 0.5 }}
         className="max-w-5xl mx-auto bg-white rounded-3xl shadow-2xl p-6 sm:p-10"
       >
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-blue-800 mb-6 text-center">
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-blue-800 mb-2 text-center">
           My Reservations
         </h1>
+        <div className="text-center text-gray-500 text-sm mb-6">
+          {reservations.length === 0
+            ? "No reservation history found."
+            : "Below is your complete seat reservation history, including past and current bookings."}
+        </div>
 
         {loading ? (
           <div className="flex justify-center items-center py-16">
-            <span className="text-lg text-blue-700 font-semibold animate-pulse">Loading…</span>
+            <span className="text-lg text-blue-700 font-semibold animate-pulse">
+              Loading…
+            </span>
           </div>
         ) : apiError ? (
           <div className="flex flex-col items-center py-16">
@@ -146,18 +170,20 @@ function MyReservations({ isLoggedIn }) {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-100">
                   {reservations.map((r, idx) => (
-                    <tr key={r.id} className="hover:bg-blue-50 transition">
+                    <tr key={r.id || idx} className="hover:bg-blue-50 transition">
                       <td className="px-4 py-2 font-semibold">{r.seat_number}</td>
                       <td className="px-4 py-2">{r.floor}</td>
                       <td className="px-4 py-2">
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-bold
+                          className={`px-3 py-1 rounded-full text-xs font-bold capitalize
                             ${r.status === "confirmed"
                               ? "bg-green-100 text-green-700"
-                              : "bg-yellow-100 text-yellow-700"}
+                              : r.status === "booked"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : "bg-gray-100 text-gray-400"}
                           `}
                         >
-                          {r.status.charAt(0).toUpperCase() + r.status.slice(1)}
+                          {r.status}
                         </span>
                       </td>
                       <td className="px-4 py-2">
@@ -166,7 +192,7 @@ function MyReservations({ isLoggedIn }) {
                           : "-"}
                       </td>
                       <td className="px-4 py-2">
-                        {r.status === "confirmed" && r.confirmed_at
+                        {r.confirmed_at
                           ? new Date(r.confirmed_at).toLocaleString()
                           : "-"}
                       </td>
@@ -183,58 +209,49 @@ function MyReservations({ isLoggedIn }) {
             <div className="flex flex-col md:flex-row gap-8 justify-center items-center">
               {/* Status Pie Chart */}
               <div className="w-full md:w-1/2 bg-blue-50 rounded-2xl shadow p-4 mb-6 md:mb-0">
-                <h2 className="text-lg font-bold text-blue-700 mb-2 text-center">Booking Status</h2>
-                <Pie
-                  data={{
-                    labels: ["Booked", "Checked In"],
-                    datasets: [
-                      {
-                        data: [
-                          chartData.statusCounts.booked,
-                          chartData.statusCounts.confirmed,
-                        ],
-                        backgroundColor: ["#facc15", "#22c55e"],
-                        borderColor: ["#fde047", "#16a34a"],
-                        borderWidth: 2,
-                      },
-                    ],
-                  }}
-                  options={{
-                    plugins: {
-                      legend: { display: true, position: "bottom" },
-                    },
-                  }}
-                />
+                <h2 className="text-lg font-bold text-blue-700 mb-2 text-center">
+                  Booking Status Distribution
+                </h2>
+                <ResponsiveContainer width="100%" height={260}>
+                  <PieChart>
+                    <Pie
+                      data={chartData.statusPie}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      label={({ name, percent }) =>
+                        `${name}: ${(percent * 100).toFixed(0)}%`
+                      }
+                    >
+                      {chartData.statusPie.map((entry, idx) => (
+                        <Cell key={`cell-${idx}`} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend verticalAlign="bottom" height={36} />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
               {/* Peak Times Bar Chart */}
               <div className="w-full md:w-1/2 bg-blue-50 rounded-2xl shadow p-4">
-                <h2 className="text-lg font-bold text-blue-700 mb-2 text-center">Booking Peak Hours</h2>
-                <Bar
-                  data={{
-                    labels: Array.from({ length: 24 }, (_, i) =>
-                      `${i}:00`
-                    ),
-                    datasets: [
-                      {
-                        label: "Bookings",
-                        data: chartData.hourCounts,
-                        backgroundColor: "#3b82f6",
-                        borderRadius: 6,
-                        maxBarThickness: 24,
-                      },
-                    ],
-                  }}
-                  options={{
-                    responsive: true,
-                    plugins: {
-                      legend: { display: false },
-                    },
-                    scales: {
-                      x: { grid: { display: false } },
-                      y: { beginAtZero: true, grid: { color: "#e0e7ef" } },
-                    },
-                  }}
-                />
+                <h2 className="text-lg font-bold text-blue-700 mb-2 text-center">
+                  Booking Peak Hours
+                </h2>
+                <ResponsiveContainer width="100%" height={260}>
+                  <BarChart data={chartData.hourBar}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="hour" />
+                    <YAxis allowDecimals={false} />
+                    <Tooltip cursor={{ fill: "#e0e7ef", opacity: 0.3 }} />
+                    <Bar
+                      dataKey="Bookings"
+                      fill="#3b82f6"
+                      radius={[6, 6, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </div>
           </>
