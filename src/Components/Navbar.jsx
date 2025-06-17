@@ -61,6 +61,17 @@ function Navbar({ isLoggedIn, onContactClick, onFeaturesClick }) {
     }
   };
 
+  // Handler for How It Works button
+  const handleHowItWorks = () => {
+    setMenuOpen(false);
+    const howItWorksSection = document.getElementById("howitworks-section");
+    if (howItWorksSection) {
+      howItWorksSection.scrollIntoView({ behavior: "smooth" });
+    } else {
+      navigate("/"); // fallback if not on home page
+    }
+  };
+
   return (
     <nav
       className={`${
@@ -127,9 +138,12 @@ function Navbar({ isLoggedIn, onContactClick, onFeaturesClick }) {
         >
           Features
         </button>
-        <span className="hover:text-blue-600 transition-colors cursor-default">
+        <button
+          onClick={handleHowItWorks}
+          className="hover:text-blue-600 transition-colors cursor-pointer focus:outline-none"
+        >
           How it Works
-        </span>
+        </button>
         <button
           onClick={onContactClick}
           className="hover:text-blue-600 transition-colors bg-transparent border-none outline-none cursor-pointer"
@@ -182,10 +196,8 @@ function Navbar({ isLoggedIn, onContactClick, onFeaturesClick }) {
               Features
             </button>
             <button
-              disabled
-              className="block w-11/12 text-center text-gray-700 text-lg font-medium hover:text-blue-600 transition-colors py-4 rounded-lg cursor-default focus:outline-none"
-              tabIndex={-1}
-              aria-disabled="true"
+              onClick={handleHowItWorks}
+              className="block w-11/12 text-center text-gray-700 text-lg font-medium hover:text-blue-600 transition-colors py-4 rounded-lg focus:outline-none"
             >
               How it Works
             </button>

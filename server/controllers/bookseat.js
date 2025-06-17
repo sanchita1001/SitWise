@@ -59,7 +59,7 @@ exports.bookSeat = async (req, res) => {
 
     // Book the seat
     const bookedAt = new Date();
-    const expiresAt = new Date(bookedAt.getTime() + 5 * 60000); // 5 min
+    const expiresAt = new Date(Date.now() + 15 * 1000); // 15 seconds
 
     const result = await pool.query(
       `UPDATE seats

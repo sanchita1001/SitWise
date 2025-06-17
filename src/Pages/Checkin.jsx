@@ -8,7 +8,7 @@ const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
 const CheckIn = () => {
   const { seatId } = useParams();
-  const [timer, setTimer] = useState(300); // 5 minutes
+  const [timer, setTimer] = useState(15); // 5 seconds
   const [seat, setSeat] = useState(null);
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -85,6 +85,15 @@ const CheckIn = () => {
     animate: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, type: "spring" } },
     exit: { opacity: 0, y: 40, scale: 0.97, transition: { duration: 0.3 } }
   };
+
+  useEffect(() => {
+    if (timer <= 0 && !success) {
+      const timeout = setTimeout(() => {
+        navigate("/", { state: { error: "Check-in failed! Seat was released." } });
+      }, 3000); // 3 seconds
+      return () => clearTimeout(timeout);
+    }
+  }, [timer, success, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-100 px-2 py-8">
@@ -251,7 +260,7 @@ const CheckIn = () => {
               <div className="text-red-500 mt-4" role="alert">{apiError}</div>
             )}
             <div className="text-gray-400 text-xs mt-4 text-center">
-              You have 5 minutes to check in after booking.
+              You have 5 seconds to check in after booking.
             </div>
           </motion.div>
         )}
