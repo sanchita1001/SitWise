@@ -49,7 +49,7 @@ export default function SeatNotifications() {
     };
 
     fetchSeats();
-    const interval = setInterval(fetchSeats, 20000);
+    const interval = setInterval(fetchSeats, 10000);
     return () => clearInterval(interval);
   }, []);
 
