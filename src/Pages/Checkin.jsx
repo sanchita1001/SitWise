@@ -8,7 +8,7 @@ const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
 const CheckIn = () => {
   const { seatId } = useParams();
-  const [timer, setTimer] = useState(15); // 5 seconds
+  const [timer, setTimer] = useState(15); // 15 seconds
   const [seat, setSeat] = useState(null);
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -260,7 +260,7 @@ const CheckIn = () => {
               <div className="text-red-500 mt-4" role="alert">{apiError}</div>
             )}
             <div className="text-gray-400 text-xs mt-4 text-center">
-              You have 5 seconds to check in after booking.
+              You have 15 seconds to check in after booking.
             </div>
           </motion.div>
         )}
