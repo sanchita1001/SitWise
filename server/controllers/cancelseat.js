@@ -7,7 +7,7 @@ exports.cancelSeat = async (req, res) => {
     const result = await pool.query(
       `UPDATE seats
        SET status = 'free', user_id = NULL, booked_at = NULL, expires_at = NULL
-       WHERE id = $1 AND user_id = $2 AND status = 'booked'
+       WHERE id = $1 AND user_id = $2 AND (status = 'booked' OR status = 'confirmed')
        RETURNING *`,
       [seat_id, user_id]
     );

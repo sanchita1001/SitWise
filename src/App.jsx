@@ -4,6 +4,8 @@ import { AnimatePresence } from "framer-motion";
 import Home from "./Pages/Home";
 import Auth from "./Pages/Auth";
 import FloorPlan from "./Pages/FloorPlan";
+import ConfirmSeat from "./Pages/ConfirmSeat";
+import CheckIn from "./Pages/CheckIn";
 import supabase from "./supabase/client";
 import './App.css'
 
@@ -15,6 +17,8 @@ function AnimatedRoutes({ isLoggedIn }) {
         <Route path="/" element={<Home isLoggedIn={isLoggedIn} />} />
         <Route path="/floorplan/:floorId" element={<FloorPlan />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/confirm/:seatId" element={<ConfirmSeat />} />
+        <Route path="/checkin/:seatId" element={<CheckIn />} />
       </Routes>
     </AnimatePresence>
   );
