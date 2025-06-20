@@ -10,6 +10,7 @@ import MyReservations from "./Pages/MyReservations"; // Import MyReservations pa
 import supabase from "./supabase/client";
 import './App.css'
 import PageWrapper from "./components/PageWrapper";
+import SeatNotifications from "./Components/SeatNotifications";
 
 function AnimatedRoutes({ isLoggedIn }) {
   const location = useLocation();
@@ -80,6 +81,7 @@ function App() {
   return (
     <BrowserRouter>
       <AnimatedRoutes isLoggedIn={isLoggedIn} />
+      <SeatNotifications />
     </BrowserRouter>
   );
 }
