@@ -135,7 +135,7 @@ function FloorCard({ onSelectFloor, seats = [], isLoggedIn }) {
             <div className="flex flex-wrap gap-2">
               <span className="bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full">Group Study</span>
               <span className="bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full">Casual Reading</span>
-              <span className="bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full">Coffee Area</span>
+              {/* <span className="bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full">Coffee Area</span> */}
             </div>
           </div>
 
