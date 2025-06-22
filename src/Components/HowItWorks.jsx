@@ -19,13 +19,13 @@ const steps = [
 		icon: <CalendarCheck className="w-8 h-8 sm:w-10 sm:h-10" />,
 		title: 'Book Instantly',
 		description:
-			'Reserve your seat in just a click. Your spot is held for 5 minutes until you check in.',
+			'Reserve your seat in just a click. Your spot is held for 10 minutes until you check in.',
 	},
 	{
 		icon: <Timer className="w-8 h-8 sm:w-10 sm:h-10" />,
 		title: 'Quick Check-In',
 		description:
-			'Arrive at the library and confirm your seat within 5 minutes to secure your booking.',
+			'Arrive at the library and confirm your seat within 10 minutes to secure your booking.',
 	},
 	{
 		icon: <CheckCircle className="w-8 h-8 sm:w-10 sm:h-10" />,

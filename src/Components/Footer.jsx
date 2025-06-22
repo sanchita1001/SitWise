@@ -2,6 +2,7 @@ import React from "react";
 import { FaGithub } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import MyReservations from './../Pages/MyReservations';
 
 export default function Footer({ isLoggedIn }) {
   return (
@@ -23,17 +24,33 @@ export default function Footer({ isLoggedIn }) {
           >
             <Link to="/" className="transition-colors px-3 py-1 rounded-lg hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200">Home</Link>
             {isLoggedIn ? (
+              <>
               <Link to="/floorplan/1" className="transition-colors px-3 py-1 rounded-lg hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200">Book Seat</Link>
-            ) : (
+             <Link to="/reservations" className="transition-colors px-3 py-1 rounded-lg hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            aria-disabled="true" title="Login to book seats">My Reservations</Link>
+           </> ) : (
+              <>
               <span
-                className="transition-colors px-3 py-1 rounded-lg text-gray-400 cursor-not-allowed"
+                className="transition-colors px-5 py-1 rounded-lg text-gray-400 cursor-not-allowed "
                 aria-disabled="true"
                 title="Login to book seats"
               >
                 Book Seat
+                
               </span>
+              <span
+                className="transition-colors px-5 py-1 rounded-lg text-gray-400 cursor-not-allowed "
+                aria-disabled="true"
+                title="Login to book seats"
+              >
+                MyReservations
+                
+              </span>
+              </>
+              
             )}
-            <Link to="/reservations" className="transition-colors px-3 py-1 rounded-lg hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200">My Reservations</Link>
+            {/* <Link to="/reservations" className="transition-colors px-3 py-1 rounded-lg hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            aria-disabled="true" title="Login to book seats">My Reservations</Link> */}
             <Link to="/contact" className="transition-colors px-3 py-1 rounded-lg hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200">Contact</Link>
           </motion.div>
 
