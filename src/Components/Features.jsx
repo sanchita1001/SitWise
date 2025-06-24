@@ -5,8 +5,8 @@ import { motion } from 'framer-motion';
 const features = [
   {
     icon: <Clock className="w-10 h-10" />,
-    title: '5-Minute Booking',
-    description: 'Reserve your seat just 5 minutes before arrival',
+    title: '10-Minute Booking',
+    description: 'Reserve your seat just 10 minutes before arrival',
   },
   {
     icon: <MapPin className="w-10 h-10" />,

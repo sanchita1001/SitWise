@@ -10,6 +10,7 @@ const seatColors = {
   booked: "bg-yellow-100 text-yellow-800 border-yellow-400",
   confirmed: "bg-red-100 text-red-800 border-red-400",
   selected: "bg-blue-100 text-blue-800 border-blue-400",
+  flagged: "bg-red-50 text-red-700 border-red-300", // new
 };
 
 const statusLabels = {
@@ -17,9 +18,10 @@ const statusLabels = {
   booked: "Booked",
   confirmed: "Occupied",
   selected: "Your Seat",
+  flagged: "Reported", // new
 };
-
 const mapStatus = (seat, userId) => {
+  if (seat.is_under_review) return "flagged"; // override first
   if (seat.status === "free") return "available";
   if (seat.status === "booked" && seat.user_id === userId) return "selected";
   if (seat.status === "booked") return "booked";
@@ -85,6 +87,19 @@ const FloorPlan = () => {
     }
   }, [loading, seats, floor]);
 
+  const handleReport = async (seatId) => {
+    if (!userId) return alert("Please log in to report.");
+
+    try {
+      await axios.post(`${API_URL}/api/reports`, { seatId });
+      alert("Seat reported. Thank you!");
+      fetchSeats();
+    } catch (err) {
+      console.error("Report failed:", err);
+      alert("Failed to report. Please try again.");
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -149,43 +164,53 @@ const FloorPlan = () => {
           {filteredSeats.map((seat) => {
             const status = mapStatus(seat, userId);
             return (
-              <button
-                key={seat.id}
-                onClick={() => navigate(`/confirm/${seat.id}`)}
-                disabled={status !== "available" && status !== "selected"}
-                className={`
-                  relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl font-semibold text-lg border
-                  flex items-center justify-center transition transform
-                  ${seatColors[status]}
-                  ${status === "available" || status === "selected"
-                    ? "hover:scale-105 hover:shadow-md cursor-pointer"
-                    : "opacity-60 cursor-not-allowed"}
-                  focus:outline-none focus:ring-2 focus:ring-blue-300 group
-                `}
-                aria-label={`Seat ${seat.seat_number} is ${statusLabels[status]}`}
-              >
-                <span className="text-2xl">{seat.seat_number}</span>
-                <span
+              <div key={seat.id} className="flex flex-col items-center">
+                <button
+                  onClick={() => navigate(`/confirm/${seat.id}`)}
+                  disabled={status !== "available" && status !== "selected"}
                   className={`
-                    absolute -bottom-4 left-1/2 transform -translate-x-1/2 px-3 py-0.5 text-xs font-medium rounded-full border
-                    ${
-                      status === "available"
-                        ? "bg-white text-green-700 border-green-300"
-                        : status === "selected"
-                        ? "bg-white text-blue-700 border-blue-300"
-                        : status === "booked"
-                        ? "bg-white text-yellow-700 border-yellow-300"
-                        : "bg-white text-red-700 border-red-300"
-                    }
-                    group-hover:scale-105 transition transform
+                    relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl font-semibold text-lg border
+                    flex items-center justify-center transition transform
+                    ${seatColors[status]}
+                    ${status === "available" || status === "selected"
+                      ? "hover:scale-105 hover:shadow-md cursor-pointer"
+                      : "opacity-60 cursor-not-allowed"}
+                    focus:outline-none focus:ring-2 focus:ring-blue-300 group
                   `}
+                  aria-label={`Seat ${seat.seat_number} is ${statusLabels[status]}`}
                 >
-                  {statusLabels[status]}
-                </span>
-                {status === "selected" && (
-                  <span className="absolute inset-0 rounded-xl animate-pulse bg-blue-300/20 pointer-events-none" />
+                  <span className="text-2xl">{seat.seat_number}</span>
+                  <span
+                    className={`
+                      absolute -bottom-4 left-1/2 transform -translate-x-1/2 px-3 py-0.5 text-xs font-medium rounded-full border
+                      ${
+                        status === "available"
+                          ? "bg-white text-green-700 border-green-300"
+                          : status === "selected"
+                          ? "bg-white text-blue-700 border-blue-300"
+                          : status === "booked"
+                          ? "bg-white text-yellow-700 border-yellow-300"
+                          : "bg-white text-red-700 border-red-300"
+                      }
+                      group-hover:scale-105 transition transform
+                    `}
+                  >
+                    {statusLabels[status]}
+                  </span>
+                  {status === "selected" && (
+                    <span className="absolute inset-0 rounded-xl animate-pulse bg-blue-300/20 pointer-events-none" />
+                  )}
+                </button>
+
+                {["confirmed"].includes(status) && (
+                  <button
+                    onClick={() => handleReport(seat.id)}
+                    className="mt-2 text-xs text-red-600 underline hover:text-red-800 pt-3"
+                  >
+                    Report seat
+                  </button>
                 )}
-              </button>
+              </div>
             );
           })}
         </div>

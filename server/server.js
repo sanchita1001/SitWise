@@ -23,6 +23,9 @@ const limiter = rateLimit({
   max: 60, // limit each IP to 60 requests per windowMs
 });
 app.use(limiter);
+const reportRoutes = require("./routes/reportRoutes");
+app.use("/api/reports", reportRoutes);
+
 
 // Routes
 app.use('/api/seats', seatRoutes);
