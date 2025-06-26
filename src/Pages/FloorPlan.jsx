@@ -10,7 +10,7 @@ const seatColors = {
   booked: "bg-yellow-100 text-yellow-800 border-yellow-400",
   confirmed: "bg-red-100 text-red-800 border-red-400",
   selected: "bg-blue-100 text-blue-800 border-blue-400",
-  flagged: "bg-red-50 text-red-700 border-red-300", // new
+  flagged: "bg-red-50 text-red-700 border-red-300", 
 };
 
 const statusLabels = {
@@ -18,14 +18,13 @@ const statusLabels = {
   booked: "Booked",
   confirmed: "Occupied",
   selected: "Your Seat",
-  flagged: "Reported", // new
+  flagged: "Reported", 
 };
+
 const mapStatus = (seat, userId) => {
-  if (seat.is_under_review) return "flagged"; // override first
+  if (seat.is_under_review) return "flagged";
   if (seat.status === "free") return "available";
-  if (seat.status === "booked" && seat.user_id === userId) return "selected";
-  if (seat.status === "booked") return "booked";
-  if (seat.status === "confirmed" && seat.user_id === userId) return "selected";
+  if (seat.status === "booked") return "booked"; 
   if (seat.status === "confirmed") return "confirmed";
   return "available";
 };
@@ -38,6 +37,8 @@ const FloorPlan = () => {
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState("");
   const [retryCount, setRetryCount] = useState(0);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [reportSeatId, setReportSeatId] = useState(null);
   const navigate = useNavigate();
   const gridRef = useRef(null);
 
@@ -87,16 +88,23 @@ const FloorPlan = () => {
     }
   }, [loading, seats, floor]);
 
-  const handleReport = async (seatId) => {
-    if (!userId) return alert("Please log in to report.");
+  const openConfirmDialog = (seatId) => {
+    setReportSeatId(seatId);
+    setShowConfirm(true);
+  };
 
+  const confirmReport = async () => {
+    
     try {
-      await axios.post(`${API_URL}/api/reports`, { seatId });
-      alert("Seat reported. Thank you!");
+      await axios.post(`${API_URL}/api/reports`, { seatId: reportSeatId });
+     
       fetchSeats();
     } catch (err) {
       console.error("Report failed:", err);
       alert("Failed to report. Please try again.");
+    } finally {
+      setShowConfirm(false);
+      setReportSeatId(null);
     }
   };
 
@@ -104,7 +112,9 @@ const FloorPlan = () => {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
         <div className="bg-white p-8 rounded-xl shadow-md text-center w-80">
-          <span className="text-gray-600 text-lg font-medium animate-pulse">Loading seats…</span>
+          <span className="text-gray-600 text-lg font-medium animate-pulse">
+            Loading seats…
+          </span>
         </div>
       </div>
     );
@@ -117,7 +127,7 @@ const FloorPlan = () => {
           <h2 className="text-xl font-semibold text-red-600 mb-4">Error</h2>
           <p className="text-gray-700 mb-4">{apiError}</p>
           <button
-            onClick={() => setRetryCount(c => c + 1)}
+            onClick={() => setRetryCount((c) => c + 1)}
             className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
           >
             Retry
@@ -127,7 +137,7 @@ const FloorPlan = () => {
     );
   }
 
-  const filteredSeats = seats.filter(seat => seat.floor === floor);
+  const filteredSeats = seats.filter((seat) => seat.floor === floor);
 
   if (filteredSeats.length === 0) {
     return (
@@ -167,33 +177,24 @@ const FloorPlan = () => {
               <div key={seat.id} className="flex flex-col items-center">
                 <button
                   onClick={() => navigate(`/confirm/${seat.id}`)}
-                  disabled={status !== "available" && status !== "selected"}
-                  className={`
-                    relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl font-semibold text-lg border
-                    flex items-center justify-center transition transform
-                    ${seatColors[status]}
-                    ${status === "available" || status === "selected"
+                  disabled={status !== "available"}
+                  className={`relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl font-semibold text-lg border flex items-center justify-center transition transform ${seatColors[status]} ${
+                    status === "available" || status === "selected"
                       ? "hover:scale-105 hover:shadow-md cursor-pointer"
-                      : "opacity-60 cursor-not-allowed"}
-                    focus:outline-none focus:ring-2 focus:ring-blue-300 group
-                  `}
+                      : "opacity-60 cursor-not-allowed"
+                  } focus:outline-none focus:ring-2 focus:ring-blue-300 group`}
                   aria-label={`Seat ${seat.seat_number} is ${statusLabels[status]}`}
                 >
                   <span className="text-2xl">{seat.seat_number}</span>
                   <span
-                    className={`
-                      absolute -bottom-4 left-1/2 transform -translate-x-1/2 px-3 py-0.5 text-xs font-medium rounded-full border
-                      ${
-                        status === "available"
-                          ? "bg-white text-green-700 border-green-300"
-                          : status === "selected"
-                          ? "bg-white text-blue-700 border-blue-300"
-                          : status === "booked"
-                          ? "bg-white text-yellow-700 border-yellow-300"
-                          : "bg-white text-red-700 border-red-300"
-                      }
-                      group-hover:scale-105 transition transform
-                    `}
+                    className={`absolute -bottom-4 left-1/2 transform -translate-x-1/2 px-3 py-0.5 text-xs font-medium rounded-full border ${
+                      status === "available"
+                        ? "bg-white text-green-700 border-green-300"
+                        
+                        : status === "booked"
+                        ? "bg-white text-yellow-700 border-yellow-300"
+                        : "bg-white text-red-700 border-red-300"
+                    } group-hover:scale-105 transition transform`}
                   >
                     {statusLabels[status]}
                   </span>
@@ -202,12 +203,12 @@ const FloorPlan = () => {
                   )}
                 </button>
 
-                {["confirmed"].includes(status) && (
+                {status === "confirmed" && (
                   <button
-                    onClick={() => handleReport(seat.id)}
-                    className="mt-2 text-xs text-red-600 underline hover:text-red-800 pt-3"
+                    onClick={() => openConfirmDialog(seat.id)}
+                     className="mt-7  px-3 py-1 text-sm cursor-pointer font-medium text-red-600 bg-white border border-red-300 rounded-full shadow-sm hover:scale-105 hover:border-red-400 hover:text-red-700 transition"
                   >
-                    Report seat
+                    ⚠️ Report seat
                   </button>
                 )}
               </div>
@@ -215,6 +216,34 @@ const FloorPlan = () => {
           })}
         </div>
       </div>
+
+      {showConfirm && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/70 z-50">
+          <div className="bg-white p-6 rounded-xl shadow-lg w-80 text-center">
+            <h3 className="text-lg font-semibold mb-4">Report this seat?</h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to report this seat as incorrectly occupied?
+            </p>
+            <div className="flex justify-between">
+              <button
+                onClick={() => {
+                  setShowConfirm(false);
+                  setReportSeatId(null);
+                }}
+                className="px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmReport}
+                className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 cursor-pointer"
+              >
+                Report
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
